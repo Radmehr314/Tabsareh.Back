@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="9.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tabsareh.Application.Contracts\Tabsareh.Application.Contracts.csproj" />
+    <ProjectReference Include="..\Tabsareh.Application\Tabsareh.Application.csproj" />
+    <ProjectReference Include="..\Tabsareh.Infrastructure.Persistance\Tabsareh.Infrastructure.Persistance.csproj" />
+  </ItemGroup>
+
+</Project>

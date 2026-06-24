@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.5" />
+    <PackageReference Include="Tabsareh.Framework.Application" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tabsareh.Application.Contracts\Tabsareh.Application.Contracts.csproj" />
+    <ProjectReference Include="..\Tabsareh.Domain\Tabsareh.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

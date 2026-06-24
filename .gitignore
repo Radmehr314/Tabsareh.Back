@@ -1,0 +1,32 @@
+## .NET build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+[Oo]ut/
+
+## Rider / IDE
+.idea/
+*.user
+*.suo
+.vs/
+*.userprefs
+
+## VS Code
+.vscode/
+
+## Test / coverage
+[Tt]est[Rr]esult*/
+*.coverage
+*.coveragexml
+
+## OS
+.DS_Store
+Thumbs.db
+
+## NuGet
+*.nupkg
+packages/
