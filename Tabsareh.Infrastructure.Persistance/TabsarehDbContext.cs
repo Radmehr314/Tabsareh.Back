@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Tabsareh.Domain.Models.Admins;
+using Tabsareh.Domain.Models.Categories;
 using Tabsareh.Domain.Models.ContentOwners;
 using Tabsareh.Domain.Models.Roles;
 using Tabsareh.Domain.Models.Teachers;
+using Tabsareh.Domain.Models.Users;
 
 namespace Tabsareh.Infrastructure.Persistance
 {
@@ -14,6 +16,8 @@ namespace Tabsareh.Infrastructure.Persistance
         public DbSet<Role> Roles => Set<Role>();
         public DbSet<Teacher> Teachers => Set<Teacher>();
         public DbSet<ContentOwner> ContentOwners => Set<ContentOwner>();
+        public DbSet<Category> Categories => Set<Category>();
+        public DbSet<User> Users => Set<User>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

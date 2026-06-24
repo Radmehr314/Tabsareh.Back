@@ -34,6 +34,22 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Categories",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    ParentId = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Categories", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ContentOwners",
                 columns: table => new
                 {
@@ -85,14 +101,47 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     table.PrimaryKey("PK_Teachers", x => x.Id);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Phone = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Admins_UserName",
                 table: "Admins",
                 column: "UserName");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Categories_Name",
+                table: "Categories",
+                column: "Name");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Categories_ParentId",
+                table: "Categories",
+                column: "ParentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ContentOwners_UserName",
                 table: "ContentOwners",
+                column: "UserName");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_UserName",
+                table: "Users",
                 column: "UserName");
         }
 
@@ -103,6 +152,9 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                 name: "Admins");
 
             migrationBuilder.DropTable(
+                name: "Categories");
+
+            migrationBuilder.DropTable(
                 name: "ContentOwners");
 
             migrationBuilder.DropTable(
@@ -110,6 +162,9 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
 
             migrationBuilder.DropTable(
                 name: "Teachers");
+
+            migrationBuilder.DropTable(
+                name: "Users");
         }
     }
 }

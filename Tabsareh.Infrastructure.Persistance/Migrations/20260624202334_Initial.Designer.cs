@@ -12,7 +12,7 @@ using Tabsareh.Infrastructure.Persistance;
 namespace Tabsareh.Infrastructure.Persistance.Migrations
 {
     [DbContext(typeof(TabsarehDbContext))]
-    [Migration("20260624165204_Initial")]
+    [Migration("20260624202334_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -80,6 +80,39 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     b.HasIndex("UserName");
 
                     b.ToTable("Admins", (string)null);
+                });
+
+            modelBuilder.Entity("Tabsareh.Domain.Models.Categories.Category", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ParentId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name");
+
+                    b.HasIndex("ParentId");
+
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Tabsareh.Domain.Models.ContentOwners.ContentOwner", b =>
@@ -185,6 +218,48 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Teachers", (string)null);
+                });
+
+            modelBuilder.Entity("Tabsareh.Domain.Models.Users.User", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserName");
+
+                    b.ToTable("Users", (string)null);
                 });
 #pragma warning restore 612, 618
         }
