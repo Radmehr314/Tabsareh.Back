@@ -4,14 +4,13 @@ namespace Tabsareh.Domain.Models.ContentOwners
     {
         private ContentOwner() { } // برای EF Core
 
-        public ContentOwner(string name, string userName, string password, string salt, bool isBan, List<string>? teacherIds)
+        public ContentOwner(string name, string userName, string password, string salt, bool isBan)
         {
             Name = name;
             UserName = userName;
             Password = password;
             Salt = salt;
             IsBan = isBan;
-            TeacherIds = teacherIds ?? new List<string>();
         }
 
         public void SetId(string id)
@@ -23,7 +22,7 @@ namespace Tabsareh.Domain.Models.ContentOwners
             Id = id;
         }
 
-        public void Update(string name, string userName, string? password, string? salt, List<string>? teacherIds)
+        public void Update(string name, string userName, string? password, string? salt)
         {
             Name = name;
             UserName = userName;
@@ -32,7 +31,6 @@ namespace Tabsareh.Domain.Models.ContentOwners
                 Password = password;
                 Salt = salt;
             }
-            TeacherIds = teacherIds ?? new List<string>();
             UpdatedAt = DateTime.Now;
         }
 
@@ -48,6 +46,5 @@ namespace Tabsareh.Domain.Models.ContentOwners
         public string Salt { get; private set; }
         public bool IsBan { get; private set; } = false;
         public bool IsDeleted { get; set; }
-        public List<string> TeacherIds { get; private set; } = new();
     }
 }

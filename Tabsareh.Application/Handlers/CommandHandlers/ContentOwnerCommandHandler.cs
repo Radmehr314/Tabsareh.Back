@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Configuration;
-using Tabsareh.Framework.Application;
-using Tabsareh.Framework.Application.Exceptions;
-using Tabsareh.Framework.Application.Security;
 using Tabsareh.Application.Contracts.Commands.ContentOwners;
 using Tabsareh.Domain;
 using Tabsareh.Domain.Models.ContentOwners;
+using Tabsareh.Framework.Application;
+using Tabsareh.Framework.Application.Exceptions;
+using Tabsareh.Framework.Application.Security;
 
 namespace Tabsareh.Application.Handlers.CommandHandlers
 {
@@ -32,13 +32,11 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
             var existUsername = await _unitOfWork.ContentOwnerRepository.ExistsByUserNameAsync(command.UserName);
             if (existUsername) throw new UserAccessException("نام کاربری تکراری است.");
 
-            await EnsureTeachersExist(command.TeacherIds);
-
             var pepper = _config["Security:Pepper"]
                 ?? throw new InvalidOperationException("Missing Security:Pepper");
 
             var (hashPassword, salt) = HashMaker.HashPassword(command.Password, pepper);
-            var owner = new ContentOwner(command.Name, command.UserName, hashPassword, salt, command.IsBan, command.TeacherIds);
+            var owner = new ContentOwner(command.Name, command.UserName, hashPassword, salt, command.IsBan);
             var id = await _unitOfWork.ContentOwnerRepository.AddAsync(owner);
             return new CommandResult { Id = id };
         }
@@ -47,8 +45,6 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
         {
             var owner = await _unitOfWork.ContentOwnerRepository.GetByIdAsync(command.Id);
             if (owner is null || owner.IsDeleted) throw new NotFoundException("صاحب اثر یافت نشد.");
-
-            await EnsureTeachersExist(command.TeacherIds);
 
             if (command.Password != null)
             {
@@ -59,11 +55,11 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
                     ?? throw new InvalidOperationException("Missing Security:Pepper");
 
                 var (hashPassword, salt) = HashMaker.HashPassword(command.Password, pepper);
-                owner.Update(command.Name, command.UserName, hashPassword, salt, command.TeacherIds);
+                owner.Update(command.Name, command.UserName, hashPassword, salt);
             }
             else
             {
-                owner.Update(command.Name, command.UserName, null, null, command.TeacherIds);
+                owner.Update(command.Name, command.UserName, null, null);
             }
 
             var result = await _unitOfWork.ContentOwnerRepository.UpdateAsync(owner);
@@ -93,16 +89,6 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
             owner.Delete();
             var result = await _unitOfWork.ContentOwnerRepository.UpdateAsync(owner);
             return new CommandResult { Id = result.Id };
-        }
-
-        private async Task EnsureTeachersExist(List<string> teacherIds)
-        {
-            if (teacherIds == null || teacherIds.Count == 0) return;
-
-            var distinctIds = teacherIds.Distinct().ToList();
-            var found = await _unitOfWork.TeacherRepository.GetByIdsAsync(distinctIds);
-            if (found.Count != distinctIds.Count)
-                throw new NotFoundException("یک یا چند استاد انتخاب‌شده یافت نشد.");
         }
     }
 }

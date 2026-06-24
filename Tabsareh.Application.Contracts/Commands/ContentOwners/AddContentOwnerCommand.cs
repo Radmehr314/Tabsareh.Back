@@ -9,6 +9,5 @@ namespace Tabsareh.Application.Contracts.Commands.ContentOwners
         public string Password { get; set; }
         public string ConfirmPassword { get; set; }
         public bool IsBan { get; set; } = false;
-        public List<string> TeacherIds { get; set; } = new();
     }
 }

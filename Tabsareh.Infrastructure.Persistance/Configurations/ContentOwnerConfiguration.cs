@@ -14,10 +14,6 @@ namespace Tabsareh.Infrastructure.Persistance.Configurations
             b.Property(x => x.Name).HasMaxLength(256);
             b.Property(x => x.UserName).HasMaxLength(256).IsRequired();
             b.HasIndex(x => x.UserName);
-
-            b.Property(x => x.TeacherIds)
-                .HasConversion(StringListConverter.Converter)
-                .Metadata.SetValueComparer(StringListConverter.Comparer);
         }
     }
 }

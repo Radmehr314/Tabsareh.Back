@@ -1,12 +1,11 @@
 using Microsoft.Extensions.Configuration;
-using Tabsareh.Framework.Application;
-using Tabsareh.Framework.Application.Exceptions;
-using Tabsareh.Framework.Application.Security;
 using Tabsareh.Application.Contracts.Contracts;
 using Tabsareh.Application.Contracts.Queries.Auth;
 using Tabsareh.Application.Contracts.QueryResult.Auth;
-using Tabsareh.Application.Contracts.QueryResult.ContentOwner;
 using Tabsareh.Domain;
+using Tabsareh.Framework.Application;
+using Tabsareh.Framework.Application.Exceptions;
+using Tabsareh.Framework.Application.Security;
 
 namespace Tabsareh.Application.Handlers.QueryHandlers
 {
@@ -40,15 +39,10 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             if (!isValidUser)
                 throw new NotFoundException("نام کاربری یا رمز عبور صحیح نمیباشد.");
 
-            if (admin.IsBan) throw new UserAccessException("حساب کاربری شما محدود شده است لطفا با مجموعه تماس بگیرید.");
+            if (admin.IsBan)
+                throw new UserAccessException("حساب کاربری شما محدود شده است لطفا با مجموعه تماس بگیرید.");
 
-            List<string> permissions = new();
-            if (!string.IsNullOrWhiteSpace(admin.RoleId))
-            {
-                var role = await _unitOfWork.RoleRepository.GetByIdAsync(admin.RoleId);
-                if (role != null)
-                    permissions = role.Permissions;
-            }
+            var permissions = await GetAdminPermissions(admin.RoleId);
 
             var token = _tokenService.Generate(
                 userId: admin.Id,
@@ -65,34 +59,23 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             };
         }
 
-        /// <summary>
-        /// ورود یکپارچه؛ ابتدا میان ادمین‌ها و سپس صاحبان اثر جستجو می‌کند.
-        /// </summary>
         public async Task<LoginResultDto> Handle(LoginQuery query)
         {
             var pepper = _configuration["Security:Pepper"]
                 ?? throw new InvalidOperationException("Missing Security:Pepper");
 
-            // ---- ابتدا تلاش برای ورود ادمین ----
             var admin = await _unitOfWork.AdminRepository.GetByUserNameAsync(query.UserName);
             if (admin is not null && HashMaker.Verify(query.Password, pepper, admin.Salt, admin.Password))
             {
                 if (admin.IsBan)
                     throw new UserAccessException("حساب کاربری شما محدود شده است لطفا با مجموعه تماس بگیرید.");
 
-                List<string> permissions = new();
-                if (!string.IsNullOrWhiteSpace(admin.RoleId))
-                {
-                    var role = await _unitOfWork.RoleRepository.GetByIdAsync(admin.RoleId);
-                    if (role != null) permissions = role.Permissions;
-                }
-
                 var adminToken = _tokenService.Generate(
                     userId: admin.Id,
                     tokenVersion: 1,
                     deviceId: "web",
                     role: "admin",
-                    permissions: permissions);
+                    permissions: await GetAdminPermissions(admin.RoleId));
 
                 return new LoginResultDto
                 {
@@ -103,7 +86,6 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
                 };
             }
 
-            // ---- سپس تلاش برای ورود صاحب اثر ----
             var owner = await _unitOfWork.ContentOwnerRepository.GetByUserNameAsync(query.UserName);
             if (owner is not null && HashMaker.Verify(query.Password, pepper, owner.Salt, owner.Password))
             {
@@ -129,9 +111,6 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             throw new NotFoundException("نام کاربری یا رمز عبور صحیح نمیباشد.");
         }
 
-        /// <summary>
-        /// اطلاعات کاربر لاگین‌شده را بر اساس نقش داخل توکن برمی‌گرداند (ادمین یا صاحب اثر).
-        /// </summary>
         public async Task<CurrentUserDto> Handle(GetCurrentUserQuery query)
         {
             var userId = _userInfoService.GetUserIdByToken();
@@ -167,30 +146,25 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
                 var owner = await _unitOfWork.ContentOwnerRepository.GetByIdAsync(userId);
                 if (owner is null || owner.IsDeleted) throw new NotFoundException("کاربر یافت نشد.");
 
-                var teachers = owner.TeacherIds.Count == 0
-                    ? new List<Domain.Models.Teachers.Teacher>()
-                    : await _unitOfWork.TeacherRepository.GetByIdsAsync(owner.TeacherIds.Distinct().ToList());
-                var teacherMap = teachers.ToDictionary(t => t.Id);
-
                 return new CurrentUserDto
                 {
                     Id = owner.Id,
                     Role = "content_owner",
                     FullName = owner.Name,
-                    UserName = owner.UserName,
-                    TeacherIds = owner.TeacherIds,
-                    Teachers = owner.TeacherIds
-                        .Where(teacherMap.ContainsKey)
-                        .Select(id => new TeacherBriefDto
-                        {
-                            Id = id,
-                            FullName = $"{teacherMap[id].FirstName} {teacherMap[id].LastName}".Trim()
-                        })
-                        .ToList()
+                    UserName = owner.UserName
                 };
             }
 
             throw new UserAccessException("نوع کاربر پشتیبانی نمی‌شود.");
+        }
+
+        private async Task<List<string>> GetAdminPermissions(string? roleId)
+        {
+            if (string.IsNullOrWhiteSpace(roleId))
+                return new List<string>();
+
+            var role = await _unitOfWork.RoleRepository.GetByIdAsync(roleId);
+            return role?.Permissions ?? new List<string>();
         }
     }
 }

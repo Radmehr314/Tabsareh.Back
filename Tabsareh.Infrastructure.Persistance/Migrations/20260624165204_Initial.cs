@@ -44,7 +44,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     Salt = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsBan = table.Column<bool>(type: "bit", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    TeacherIds = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
