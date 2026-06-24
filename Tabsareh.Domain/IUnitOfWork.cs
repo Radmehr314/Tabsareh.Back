@@ -2,6 +2,7 @@ using Tabsareh.Domain.Models.Admins;
 using Tabsareh.Domain.Models.Blogs;
 using Tabsareh.Domain.Models.Categories;
 using Tabsareh.Domain.Models.ContentOwners;
+using Tabsareh.Domain.Models.DynamicPages;
 using Tabsareh.Domain.Models.Roles;
 using Tabsareh.Domain.Models.Teachers;
 using Tabsareh.Domain.Models.Users;
@@ -17,5 +18,6 @@ namespace Tabsareh.Domain
         ICategoryRepository CategoryRepository { get; set; }
         IUserRepository UserRepository { get; set; }
         IBlogRepository BlogRepository { get; set; }
+        IDynamicPageRepository DynamicPageRepository { get; set; }
     }
 }

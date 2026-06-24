@@ -3,6 +3,7 @@ using Tabsareh.Domain.Models.Admins;
 using Tabsareh.Domain.Models.Blogs;
 using Tabsareh.Domain.Models.Categories;
 using Tabsareh.Domain.Models.ContentOwners;
+using Tabsareh.Domain.Models.DynamicPages;
 using Tabsareh.Domain.Models.Roles;
 using Tabsareh.Domain.Models.Teachers;
 using Tabsareh.Domain.Models.Users;
@@ -20,6 +21,7 @@ namespace Tabsareh.Infrastructure.Persistance
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<User> Users => Set<User>();
         public DbSet<Blog> Blogs => Set<Blog>();
+        public DbSet<DynamicPage> DynamicPages => Set<DynamicPage>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

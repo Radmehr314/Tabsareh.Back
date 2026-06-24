@@ -3,6 +3,7 @@ using Tabsareh.Domain.Models.Admins;
 using Tabsareh.Domain.Models.Blogs;
 using Tabsareh.Domain.Models.Categories;
 using Tabsareh.Domain.Models.ContentOwners;
+using Tabsareh.Domain.Models.DynamicPages;
 using Tabsareh.Domain.Models.Roles;
 using Tabsareh.Domain.Models.Teachers;
 using Tabsareh.Domain.Models.Users;
@@ -18,6 +19,7 @@ namespace Tabsareh.Infrastructure.Persistance
         public ICategoryRepository CategoryRepository { get; set; }
         public IUserRepository UserRepository { get; set; }
         public IBlogRepository BlogRepository { get; set; }
+        public IDynamicPageRepository DynamicPageRepository { get; set; }
 
         public UnitOfWork(
             IAdminRepository adminRepository,
@@ -26,7 +28,8 @@ namespace Tabsareh.Infrastructure.Persistance
             IContentOwnerRepository contentOwnerRepository,
             ICategoryRepository categoryRepository,
             IUserRepository userRepository,
-            IBlogRepository blogRepository)
+            IBlogRepository blogRepository,
+            IDynamicPageRepository dynamicPageRepository)
         {
             AdminRepository = adminRepository;
             RoleRepository = roleRepository;
@@ -35,6 +38,7 @@ namespace Tabsareh.Infrastructure.Persistance
             CategoryRepository = categoryRepository;
             UserRepository = userRepository;
             BlogRepository = blogRepository;
+            DynamicPageRepository = dynamicPageRepository;
         }
     }
 }
