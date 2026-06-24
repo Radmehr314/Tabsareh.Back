@@ -5,23 +5,27 @@ using Tabsareh.Framework.Application.Security;
 using Tabsareh.Application.Contracts.Contracts;
 using Tabsareh.Application.Contracts.Queries.Auth;
 using Tabsareh.Application.Contracts.QueryResult.Auth;
+using Tabsareh.Application.Contracts.QueryResult.ContentOwner;
 using Tabsareh.Domain;
 
 namespace Tabsareh.Application.Handlers.QueryHandlers
 {
     public class AuthQueryHandler :
         IQueryHandler<LoginAdminQuery, LoginDto>,
-        IQueryHandler<LoginQuery, LoginResultDto>
+        IQueryHandler<LoginQuery, LoginResultDto>,
+        IQueryHandler<GetCurrentUserQuery, CurrentUserDto>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
         private readonly ITokenService _tokenService;
+        private readonly IUserInfoService _userInfoService;
 
-        public AuthQueryHandler(IUnitOfWork unitOfWork, IConfiguration configuration, ITokenService tokenService)
+        public AuthQueryHandler(IUnitOfWork unitOfWork, IConfiguration configuration, ITokenService tokenService, IUserInfoService userInfoService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _tokenService = tokenService;
+            _userInfoService = userInfoService;
         }
 
         public async Task<LoginDto> Handle(LoginAdminQuery query)
@@ -123,6 +127,70 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             }
 
             throw new NotFoundException("نام کاربری یا رمز عبور صحیح نمیباشد.");
+        }
+
+        /// <summary>
+        /// اطلاعات کاربر لاگین‌شده را بر اساس نقش داخل توکن برمی‌گرداند (ادمین یا صاحب اثر).
+        /// </summary>
+        public async Task<CurrentUserDto> Handle(GetCurrentUserQuery query)
+        {
+            var userId = _userInfoService.GetUserIdByToken();
+            var role = _userInfoService.GetRoleByToken();
+
+            if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(role))
+                throw new UserAccessException("توکن نامعتبر است.");
+
+            if (role == "admin")
+            {
+                var admin = await _unitOfWork.AdminRepository.GetByIdAsync(userId);
+                if (admin is null || admin.IsDeleted) throw new NotFoundException("کاربر یافت نشد.");
+
+                var adminRole = !string.IsNullOrWhiteSpace(admin.RoleId)
+                    ? await _unitOfWork.RoleRepository.GetByIdAsync(admin.RoleId)
+                    : null;
+
+                return new CurrentUserDto
+                {
+                    Id = admin.Id,
+                    Role = "admin",
+                    FullName = $"{admin.FirstName} {admin.LastName}".Trim(),
+                    UserName = admin.UserName,
+                    Phone = admin.Phone,
+                    RoleId = admin.RoleId,
+                    RoleName = adminRole?.Name,
+                    Permissions = adminRole?.Permissions ?? new List<string>()
+                };
+            }
+
+            if (role == "content_owner")
+            {
+                var owner = await _unitOfWork.ContentOwnerRepository.GetByIdAsync(userId);
+                if (owner is null || owner.IsDeleted) throw new NotFoundException("کاربر یافت نشد.");
+
+                var teachers = owner.TeacherIds.Count == 0
+                    ? new List<Domain.Models.Teachers.Teacher>()
+                    : await _unitOfWork.TeacherRepository.GetByIdsAsync(owner.TeacherIds.Distinct().ToList());
+                var teacherMap = teachers.ToDictionary(t => t.Id);
+
+                return new CurrentUserDto
+                {
+                    Id = owner.Id,
+                    Role = "content_owner",
+                    FullName = owner.Name,
+                    UserName = owner.UserName,
+                    TeacherIds = owner.TeacherIds,
+                    Teachers = owner.TeacherIds
+                        .Where(teacherMap.ContainsKey)
+                        .Select(id => new TeacherBriefDto
+                        {
+                            Id = id,
+                            FullName = $"{teacherMap[id].FirstName} {teacherMap[id].LastName}".Trim()
+                        })
+                        .ToList()
+                };
+            }
+
+            throw new UserAccessException("نوع کاربر پشتیبانی نمی‌شود.");
         }
     }
 }

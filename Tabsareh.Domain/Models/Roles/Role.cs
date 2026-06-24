@@ -2,6 +2,8 @@ namespace Tabsareh.Domain.Models.Roles
 {
     public class Role : BaseEntity<string>
     {
+        private Role() { } // برای EF Core
+
         public Role(string name, List<string> permissions)
         {
             Name = name;

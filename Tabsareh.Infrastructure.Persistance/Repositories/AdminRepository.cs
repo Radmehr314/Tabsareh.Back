@@ -1,140 +1,87 @@
-using MongoDB.Bson;
-using MongoDB.Driver;
+using Microsoft.EntityFrameworkCore;
 using Tabsareh.Domain.Common;
 using Tabsareh.Domain.Models.Admins;
 using Tabsareh.Infrastructure.Persistance.Common;
-using Tabsareh.Infrastructure.Persistance.MongoDocuments.AdminMongo;
 
 namespace Tabsareh.Infrastructure.Persistance.Repositories
 {
     public class AdminRepository : IAdminRepository
     {
-        private readonly IMongoCollection<AdminDocument> _collection;
+        private readonly TabsarehDbContext _db;
 
-        public AdminRepository(IMongoDatabase database)
+        public AdminRepository(TabsarehDbContext db)
         {
-            _collection = database.GetCollection<AdminDocument>("Admins");
+            _db = db;
         }
 
         public async Task<Admin?> GetByIdAsync(string id)
-        {
-            var filter = Builders<AdminDocument>.Filter.Eq(x => x.Id, ObjectId.Parse(id));
-            var document = await _collection.Find(filter).FirstOrDefaultAsync();
-            return document?.ToDomain();
-        }
+            => await _db.Admins.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
 
         public async Task<IEnumerable<Admin>> GetAllAsync()
-        {
-            var documents = await _collection.Find(x => !x.IsDeleted).ToListAsync();
-            return documents.ToDomainList();
-        }
+            => await _db.Admins.AsNoTracking().Where(x => !x.IsDeleted).ToListAsync();
 
         public async Task<string> AddAsync(Admin admin)
         {
-            var document = admin.ToDocument();
-            await _collection.InsertOneAsync(document);
-            return document.Id.ToString();
+            if (string.IsNullOrWhiteSpace(admin.Id))
+                admin.SetId(Guid.NewGuid().ToString("N"));
+            _db.Admins.Add(admin);
+            await _db.SaveChangesAsync();
+            return admin.Id;
         }
 
         public async Task<Admin> UpdateAsync(Admin admin)
         {
-            var filter = Builders<AdminDocument>.Filter.Eq(x => x.Id, ObjectId.Parse(admin.Id));
-            var document = admin.ToDocument();
-
-            var result = await _collection.ReplaceOneAsync(filter, document);
-
-            if (result.MatchedCount == 0)
-                return null;
-
-            return document.ToDomain();
+            var exists = await _db.Admins.AnyAsync(x => x.Id == admin.Id);
+            if (!exists) return null;
+            _db.Admins.Update(admin);
+            await _db.SaveChangesAsync();
+            return admin;
         }
 
         public async Task<bool> DeleteAsync(string id)
         {
-            var filter = Builders<AdminDocument>.Filter.Eq(x => x.Id, ObjectId.Parse(id));
-            var result = await _collection.DeleteOneAsync(filter);
-            return result.DeletedCount > 0;
+            var admin = await _db.Admins.FirstOrDefaultAsync(x => x.Id == id);
+            if (admin is null) return false;
+            _db.Admins.Remove(admin);
+            await _db.SaveChangesAsync();
+            return true;
         }
 
         public async Task<Admin?> GetByUserNameAsync(string userName)
-        {
-            var filter = Builders<AdminDocument>.Filter.And(
-                Builders<AdminDocument>.Filter.Eq(x => x.UserName, userName),
-                Builders<AdminDocument>.Filter.Eq(x => x.IsDeleted, false)
-            );
-            var document = await _collection.Find(filter).FirstOrDefaultAsync();
-            return document?.ToDomain();
-        }
+            => await _db.Admins.AsNoTracking().FirstOrDefaultAsync(x => x.UserName == userName && !x.IsDeleted);
 
         public async Task<bool> ExistsByUserNameAsync(string userName)
-        {
-            var filter = Builders<AdminDocument>.Filter.And(
-                Builders<AdminDocument>.Filter.Eq(x => x.UserName, userName),
-                Builders<AdminDocument>.Filter.Eq(x => x.IsDeleted, false)
-            );
-            var count = await _collection.CountDocumentsAsync(filter);
-            return count > 0;
-        }
+            => await _db.Admins.AnyAsync(x => x.UserName == userName && !x.IsDeleted);
 
         public async Task<List<Admin>> GetByIdsAsync(IReadOnlyCollection<string> ids)
         {
-            var objectIds = ids
-                .Where(id => ObjectId.TryParse(id, out _))
-                .Select(ObjectId.Parse)
-                .ToList();
-
-            if (objectIds.Count == 0)
-            {
-                return new List<Admin>();
-            }
-
-            var filter = Builders<AdminDocument>.Filter.And(
-                Builders<AdminDocument>.Filter.In(x => x.Id, objectIds),
-                Builders<AdminDocument>.Filter.Eq(x => x.IsDeleted, false));
-
-            var documents = await _collection.Find(filter).ToListAsync();
-            return documents.ToDomainList().ToList();
+            if (ids is null || ids.Count == 0) return new List<Admin>();
+            return await _db.Admins.AsNoTracking()
+                .Where(x => ids.Contains(x.Id) && !x.IsDeleted).ToListAsync();
         }
 
         public async Task<string?> BanUserAsync(string userName)
         {
-            var filter = Builders<AdminDocument>.Filter.Eq(x => x.UserName, userName);
-
-            var update = Builders<AdminDocument>.Update
-                .Set(x => x.IsBan, true);
-
-            var result = await _collection.UpdateOneAsync(filter, update);
-
-            var user = await _collection.Find(filter).FirstOrDefaultAsync();
-
-            return user?.Id.ToString();
+            var admin = await _db.Admins.FirstOrDefaultAsync(x => x.UserName == userName);
+            if (admin is null) return null;
+            admin.Ban();
+            await _db.SaveChangesAsync();
+            return admin.Id;
         }
 
         public async Task<string?> UnbanUserAsync(string userName)
         {
-            var filter = Builders<AdminDocument>.Filter.Eq(x => x.UserName, userName);
-
-            var update = Builders<AdminDocument>.Update
-                .Set(x => x.IsBan, false);
-
-            var result = await _collection.UpdateOneAsync(filter, update);
-
-            var user = await _collection.Find(filter).FirstOrDefaultAsync();
-
-            return user?.Id.ToString();
+            var admin = await _db.Admins.FirstOrDefaultAsync(x => x.UserName == userName);
+            if (admin is null) return null;
+            admin.UnBan();
+            await _db.SaveChangesAsync();
+            return admin.Id;
         }
 
         public async Task<PagedResult<Admin>> GetPagedAsync(QueryOptions options)
         {
-            var filter = Builders<AdminDocument>.Filter.Eq(x => x.IsDeleted, false);
-            var pagedDoc = await QueryHelper.GetPagedResultAsync<AdminDocument>(_collection, filter, options);
-            return new PagedResult<Admin>
-            {
-                Items = pagedDoc.Items.Select(AdminMapper.ToDomain).ToList(),
-                TotalCount = pagedDoc.TotalCount,
-                Skip = pagedDoc.Skip,
-                Limit = pagedDoc.Limit
-            };
+            var query = _db.Admins.AsNoTracking().Where(x => !x.IsDeleted);
+            return await QueryHelper.GetPagedResultAsync(query, options);
         }
     }
 }

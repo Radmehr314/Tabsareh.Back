@@ -1,44 +1,46 @@
-using MongoDB.Driver;
+using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using Tabsareh.Domain.Common;
 
 namespace Tabsareh.Infrastructure.Persistance.Common;
 
-public class QueryHelper
+public static class QueryHelper
 {
-    public static async Task<List<TDocument>> ApplyPagingAndSortingAsync<TDocument>(
-        IMongoCollection<TDocument> collection,
-        FilterDefinition<TDocument> filter,
-        int skip,
-        int limit,
-        string? sortBy,
-        bool descending)
+    /// <summary>
+    /// صفحه‌بندی و مرتب‌سازی روی یک IQueryable و برگرداندن PagedResult.
+    /// </summary>
+    public static async Task<PagedResult<TEntity>> GetPagedResultAsync<TEntity>(
+        IQueryable<TEntity> query,
+        QueryOptions options) where TEntity : class
     {
-        var query = collection.Find(filter);
-        if (!string.IsNullOrEmpty(sortBy))
-        {
-            var sortDef = descending
-                ? Builders<TDocument>.Sort.Descending(sortBy)
-                : Builders<TDocument>.Sort.Ascending(sortBy);
-            query = query.Sort(sortDef);
-        }
+        var totalCount = await query.LongCountAsync();
 
-        return await query.Skip(skip).Limit(limit).ToListAsync();
-    }
+        var sortBy = string.IsNullOrWhiteSpace(options.SortBy) ? "CreatedAt" : options.SortBy;
+        query = ApplyOrder(query, sortBy, options.Descending);
 
-    public static async Task<PagedResult<TDocument>> GetPagedResultAsync<TDocument>(
-        IMongoCollection<TDocument> collection,
-        FilterDefinition<TDocument> filter,
-        QueryOptions options)
-    {
-        var totalCount = await collection.CountDocumentsAsync(filter);
-        var items = await ApplyPagingAndSortingAsync(collection, filter, options.Skip, options.Limit, options.SortBy,
-            options.Descending);
-        return new PagedResult<TDocument>
+        var items = await query.Skip(options.Skip).Take(options.Limit).ToListAsync();
+
+        return new PagedResult<TEntity>
         {
             Items = items,
             TotalCount = totalCount,
             Skip = options.Skip,
             Limit = options.Limit
         };
+    }
+
+    private static IQueryable<TEntity> ApplyOrder<TEntity>(IQueryable<TEntity> query, string propertyName, bool descending)
+    {
+        var prop = typeof(TEntity).GetProperty(propertyName,
+            System.Reflection.BindingFlags.IgnoreCase | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+
+        if (prop is null)
+            return query; // اگر ستون نامعتبر بود بدون مرتب‌سازی برگردان
+
+        var param = Expression.Parameter(typeof(TEntity), "x");
+        var body = Expression.Convert(Expression.Property(param, prop), typeof(object));
+        var selector = Expression.Lambda<Func<TEntity, object>>(body, param);
+
+        return descending ? query.OrderByDescending(selector) : query.OrderBy(selector);
     }
 }

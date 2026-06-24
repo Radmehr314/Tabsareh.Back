@@ -30,3 +30,6 @@ Thumbs.db
 ## NuGet
 *.nupkg
 packages/
+
+## Uploaded user content
+wwwroot/uploads/

@@ -2,6 +2,8 @@ namespace Tabsareh.Domain.Models.Teachers
 {
     public class Teacher : BaseEntity<string>
     {
+        private Teacher() { } // برای EF Core
+
         public Teacher(string firstName, string lastName, string? profileImage, string? description)
         {
             FirstName = firstName;

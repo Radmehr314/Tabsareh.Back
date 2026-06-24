@@ -2,15 +2,13 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Driver;
 using Tabsareh.Framework.Api;
 using Tabsareh.Framework.Application.Exceptions;
 using Tabsareh.Infrastructure.Config;
+using Tabsareh.Infrastructure.Persistance;
 using Tabsareh.Infrastructure.Persistance.Seed;
 using System.Net;
 using System.Text;
@@ -65,19 +63,12 @@ builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
     containerBuilder.RegisterModule(new AutofacModule(builder.Configuration)));
 
-// ================= Mongo =================
-BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard));
+// ================= SQL Server (EF Core) =================
+var connectionString = builder.Configuration.GetConnectionString("Default")
+    ?? throw new InvalidOperationException("Missing ConnectionStrings:Default");
 
-var mongoSection = builder.Configuration.GetSection("MongoClient");
-var connectionString = mongoSection["ConnectionString"];
-var dbName = mongoSection["DatabaseName"] ?? "Tabsareh";
-
-builder.Services.AddSingleton<IMongoClient>(_ => new MongoClient(connectionString));
-builder.Services.AddSingleton<IMongoDatabase>(sp =>
-{
-    var client = sp.GetRequiredService<IMongoClient>();
-    return client.GetDatabase(dbName);
-});
+builder.Services.AddDbContext<TabsarehDbContext>(options =>
+    options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
 
 // ================= Seeder =================
 builder.Services.AddHostedService<DataSeeder>();
@@ -170,6 +161,10 @@ app.UseSwaggerUI(c =>
 
 if (string.IsNullOrWhiteSpace(pepper))
     throw new InvalidOperationException("Missing Security:Pepper");
+
+// ================= Static Files (uploaded images) =================
+Directory.CreateDirectory(Path.Combine(app.Environment.ContentRootPath, "wwwroot", "uploads"));
+app.UseStaticFiles();
 
 app.UseCors("OpenCors");
 app.UseAuthentication();

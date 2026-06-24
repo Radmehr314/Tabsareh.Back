@@ -2,6 +2,8 @@ namespace Tabsareh.Domain.Models.ContentOwners
 {
     public class ContentOwner : BaseEntity<string>
     {
+        private ContentOwner() { } // برای EF Core
+
         public ContentOwner(string name, string userName, string password, string salt, bool isBan, List<string>? teacherIds)
         {
             Name = name;

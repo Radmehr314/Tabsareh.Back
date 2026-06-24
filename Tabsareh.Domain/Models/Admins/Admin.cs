@@ -2,6 +2,8 @@ namespace Tabsareh.Domain.Models.Admins
 {
     public class Admin : BaseEntity<string>
     {
+        private Admin() { } // برای EF Core
+
         public Admin(string userName, string firstName, string lastName, string phone, string password, string salt, bool isBan, string? roleId)
         {
             UserName = userName;

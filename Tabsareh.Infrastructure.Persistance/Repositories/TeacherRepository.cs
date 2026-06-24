@@ -1,87 +1,63 @@
-using MongoDB.Bson;
-using MongoDB.Driver;
+using Microsoft.EntityFrameworkCore;
 using Tabsareh.Domain.Common;
 using Tabsareh.Domain.Models.Teachers;
 using Tabsareh.Infrastructure.Persistance.Common;
-using Tabsareh.Infrastructure.Persistance.MongoDocuments.TeacherMongo;
 
 namespace Tabsareh.Infrastructure.Persistance.Repositories
 {
     public class TeacherRepository : ITeacherRepository
     {
-        private readonly IMongoCollection<TeacherDocument> _collection;
+        private readonly TabsarehDbContext _db;
 
-        public TeacherRepository(IMongoDatabase database)
+        public TeacherRepository(TabsarehDbContext db)
         {
-            _collection = database.GetCollection<TeacherDocument>("Teachers");
+            _db = db;
         }
 
         public async Task<Teacher?> GetByIdAsync(string id)
-        {
-            var filter = Builders<TeacherDocument>.Filter.Eq(x => x.Id, ObjectId.Parse(id));
-            var document = await _collection.Find(filter).FirstOrDefaultAsync();
-            return document?.ToDomain();
-        }
+            => await _db.Teachers.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
 
         public async Task<IEnumerable<Teacher>> GetAllAsync()
-        {
-            var documents = await _collection.Find(x => !x.IsDeleted).ToListAsync();
-            return documents.ToDomainList();
-        }
+            => await _db.Teachers.AsNoTracking().Where(x => !x.IsDeleted).ToListAsync();
 
         public async Task<string> AddAsync(Teacher teacher)
         {
-            var document = teacher.ToDocument();
-            await _collection.InsertOneAsync(document);
-            return document.Id.ToString();
+            if (string.IsNullOrWhiteSpace(teacher.Id))
+                teacher.SetId(Guid.NewGuid().ToString("N"));
+            _db.Teachers.Add(teacher);
+            await _db.SaveChangesAsync();
+            return teacher.Id;
         }
 
         public async Task<Teacher> UpdateAsync(Teacher teacher)
         {
-            var filter = Builders<TeacherDocument>.Filter.Eq(x => x.Id, ObjectId.Parse(teacher.Id));
-            var document = teacher.ToDocument();
-            var result = await _collection.ReplaceOneAsync(filter, document);
-            if (result.MatchedCount == 0)
-                return null;
-            return document.ToDomain();
+            var exists = await _db.Teachers.AnyAsync(x => x.Id == teacher.Id);
+            if (!exists) return null;
+            _db.Teachers.Update(teacher);
+            await _db.SaveChangesAsync();
+            return teacher;
         }
 
         public async Task<bool> DeleteAsync(string id)
         {
-            var filter = Builders<TeacherDocument>.Filter.Eq(x => x.Id, ObjectId.Parse(id));
-            var result = await _collection.DeleteOneAsync(filter);
-            return result.DeletedCount > 0;
+            var teacher = await _db.Teachers.FirstOrDefaultAsync(x => x.Id == id);
+            if (teacher is null) return false;
+            _db.Teachers.Remove(teacher);
+            await _db.SaveChangesAsync();
+            return true;
         }
 
         public async Task<List<Teacher>> GetByIdsAsync(IReadOnlyCollection<string> ids)
         {
-            var objectIds = ids
-                .Where(id => ObjectId.TryParse(id, out _))
-                .Select(ObjectId.Parse)
-                .ToList();
-
-            if (objectIds.Count == 0)
-                return new List<Teacher>();
-
-            var filter = Builders<TeacherDocument>.Filter.And(
-                Builders<TeacherDocument>.Filter.In(x => x.Id, objectIds),
-                Builders<TeacherDocument>.Filter.Eq(x => x.IsDeleted, false));
-
-            var documents = await _collection.Find(filter).ToListAsync();
-            return documents.ToDomainList();
+            if (ids is null || ids.Count == 0) return new List<Teacher>();
+            return await _db.Teachers.AsNoTracking()
+                .Where(x => ids.Contains(x.Id) && !x.IsDeleted).ToListAsync();
         }
 
         public async Task<PagedResult<Teacher>> GetPagedAsync(QueryOptions options)
         {
-            var filter = Builders<TeacherDocument>.Filter.Eq(x => x.IsDeleted, false);
-            var pagedDoc = await QueryHelper.GetPagedResultAsync<TeacherDocument>(_collection, filter, options);
-            return new PagedResult<Teacher>
-            {
-                Items = pagedDoc.Items.Select(TeacherMapper.ToDomain).ToList(),
-                TotalCount = pagedDoc.TotalCount,
-                Skip = pagedDoc.Skip,
-                Limit = pagedDoc.Limit
-            };
+            var query = _db.Teachers.AsNoTracking().Where(x => !x.IsDeleted);
+            return await QueryHelper.GetPagedResultAsync(query, options);
         }
     }
 }

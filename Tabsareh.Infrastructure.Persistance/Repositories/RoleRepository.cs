@@ -1,75 +1,59 @@
-using MongoDB.Bson;
-using MongoDB.Driver;
+using Microsoft.EntityFrameworkCore;
 using Tabsareh.Domain.Common;
 using Tabsareh.Domain.Models.Roles;
 using Tabsareh.Infrastructure.Persistance.Common;
-using Tabsareh.Infrastructure.Persistance.MongoDocuments.RoleMongo;
 
 namespace Tabsareh.Infrastructure.Persistance.Repositories
 {
     public class RoleRepository : IRoleRepository
     {
-        private readonly IMongoCollection<RoleDocument> _collection;
+        private readonly TabsarehDbContext _db;
 
-        public RoleRepository(IMongoDatabase database)
+        public RoleRepository(TabsarehDbContext db)
         {
-            _collection = database.GetCollection<RoleDocument>("Roles");
+            _db = db;
         }
 
         public async Task<Role?> GetByIdAsync(string id)
-        {
-            var filter = Builders<RoleDocument>.Filter.Eq(x => x.Id, ObjectId.Parse(id));
-            var document = await _collection.Find(filter).FirstOrDefaultAsync();
-            return document?.ToDomain();
-        }
+            => await _db.Roles.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
 
         public async Task<IEnumerable<Role>> GetAllAsync()
-        {
-            var documents = await _collection.Find(_ => true).ToListAsync();
-            return documents.Select(d => d.ToDomain()).ToList();
-        }
+            => await _db.Roles.AsNoTracking().ToListAsync();
 
         public async Task<PagedResult<Role>> GetPagedAsync(QueryOptions options)
         {
-            var filter = Builders<RoleDocument>.Filter.Empty;
-            var pagedDoc = await QueryHelper.GetPagedResultAsync<RoleDocument>(_collection, filter, options);
-            return new PagedResult<Role>
-            {
-                Items = pagedDoc.Items.Select(d => d.ToDomain()).ToList(),
-                TotalCount = pagedDoc.TotalCount,
-                Skip = pagedDoc.Skip,
-                Limit = pagedDoc.Limit
-            };
+            var query = _db.Roles.AsNoTracking();
+            return await QueryHelper.GetPagedResultAsync(query, options);
         }
 
         public async Task<string> AddAsync(Role role)
         {
-            var document = role.ToDocument();
-            await _collection.InsertOneAsync(document);
-            return document.Id.ToString();
+            if (string.IsNullOrWhiteSpace(role.Id))
+                role.SetId(Guid.NewGuid().ToString("N"));
+            _db.Roles.Add(role);
+            await _db.SaveChangesAsync();
+            return role.Id;
         }
 
         public async Task<Role> UpdateAsync(Role role)
         {
-            var filter = Builders<RoleDocument>.Filter.Eq(x => x.Id, ObjectId.Parse(role.Id));
-            var document = role.ToDocument();
-            var result = await _collection.ReplaceOneAsync(filter, document);
-            if (result.MatchedCount == 0)
-                return null;
-            return document.ToDomain();
+            var exists = await _db.Roles.AnyAsync(x => x.Id == role.Id);
+            if (!exists) return null;
+            _db.Roles.Update(role);
+            await _db.SaveChangesAsync();
+            return role;
         }
 
         public async Task<bool> DeleteAsync(string id)
         {
-            var filter = Builders<RoleDocument>.Filter.Eq(x => x.Id, ObjectId.Parse(id));
-            var result = await _collection.DeleteOneAsync(filter);
-            return result.DeletedCount > 0;
+            var role = await _db.Roles.FirstOrDefaultAsync(x => x.Id == id);
+            if (role is null) return false;
+            _db.Roles.Remove(role);
+            await _db.SaveChangesAsync();
+            return true;
         }
 
         public async Task<bool> ExistsByNameAsync(string name)
-        {
-            var filter = Builders<RoleDocument>.Filter.Eq(x => x.Name, name);
-            return await _collection.CountDocumentsAsync(filter) > 0;
-        }
+            => await _db.Roles.AnyAsync(x => x.Name == name);
     }
 }

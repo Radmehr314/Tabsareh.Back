@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Tabsareh.Framework.Api;
 using Tabsareh.Framework.Application;
@@ -21,6 +22,14 @@ namespace Tabsareh.Api.Controllers.Auth
         public async Task<ActionResult<LoginResultDto>> Login([FromBody] LoginQuery query)
         {
             return Ok(await Bus.Dispatch<LoginQuery, LoginResultDto>(query));
+        }
+
+        /// <summary>اطلاعات کاربر لاگین‌شده (ادمین یا صاحب اثر) برای نمایش در پنل.</summary>
+        [HttpGet("Me")]
+        [Authorize]
+        public async Task<ActionResult<CurrentUserDto>> Me()
+        {
+            return Ok(await Bus.Dispatch<GetCurrentUserQuery, CurrentUserDto>(new GetCurrentUserQuery()));
         }
     }
 }
