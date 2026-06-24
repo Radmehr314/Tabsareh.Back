@@ -47,7 +47,7 @@ builder.Services.AddAuthorization(options =>
     {
         "view_dashboard", "manage_admins", "manage_roles",
         "manage_teachers", "manage_content_owners",
-        "manage_categories", "manage_users"
+        "manage_categories", "manage_users", "manage_blogs"
     };
     foreach (var perm in permissions)
         options.AddPolicy(perm, policy => policy.RequireClaim("permission", perm));

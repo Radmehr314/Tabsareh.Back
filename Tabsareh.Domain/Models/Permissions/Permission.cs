@@ -9,6 +9,7 @@ namespace Tabsareh.Domain.Models.Permissions
         public const string ManageContentOwners = "manage_content_owners";
         public const string ManageCategories = "manage_categories";
         public const string ManageUsers = "manage_users";
+        public const string ManageBlogs = "manage_blogs";
 
         public static readonly IReadOnlyList<string> All = new[]
         {
@@ -19,6 +20,7 @@ namespace Tabsareh.Domain.Models.Permissions
             ManageContentOwners,
             ManageCategories,
             ManageUsers,
+            ManageBlogs,
         };
     }
 }

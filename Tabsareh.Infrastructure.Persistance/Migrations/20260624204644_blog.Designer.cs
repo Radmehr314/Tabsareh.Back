@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tabsareh.Infrastructure.Persistance;
 
@@ -11,9 +12,11 @@ using Tabsareh.Infrastructure.Persistance;
 namespace Tabsareh.Infrastructure.Persistance.Migrations
 {
     [DbContext(typeof(TabsarehDbContext))]
-    partial class TabsarehDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260624204644_blog")]
+    partial class blog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

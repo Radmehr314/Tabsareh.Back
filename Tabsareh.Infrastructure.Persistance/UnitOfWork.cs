@@ -1,5 +1,6 @@
 using Tabsareh.Domain;
 using Tabsareh.Domain.Models.Admins;
+using Tabsareh.Domain.Models.Blogs;
 using Tabsareh.Domain.Models.Categories;
 using Tabsareh.Domain.Models.ContentOwners;
 using Tabsareh.Domain.Models.Roles;
@@ -16,6 +17,7 @@ namespace Tabsareh.Infrastructure.Persistance
         public IContentOwnerRepository ContentOwnerRepository { get; set; }
         public ICategoryRepository CategoryRepository { get; set; }
         public IUserRepository UserRepository { get; set; }
+        public IBlogRepository BlogRepository { get; set; }
 
         public UnitOfWork(
             IAdminRepository adminRepository,
@@ -23,7 +25,8 @@ namespace Tabsareh.Infrastructure.Persistance
             ITeacherRepository teacherRepository,
             IContentOwnerRepository contentOwnerRepository,
             ICategoryRepository categoryRepository,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            IBlogRepository blogRepository)
         {
             AdminRepository = adminRepository;
             RoleRepository = roleRepository;
@@ -31,6 +34,7 @@ namespace Tabsareh.Infrastructure.Persistance
             ContentOwnerRepository = contentOwnerRepository;
             CategoryRepository = categoryRepository;
             UserRepository = userRepository;
+            BlogRepository = blogRepository;
         }
     }
 }

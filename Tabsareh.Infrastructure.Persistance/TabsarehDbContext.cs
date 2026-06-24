@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Tabsareh.Domain.Models.Admins;
+using Tabsareh.Domain.Models.Blogs;
 using Tabsareh.Domain.Models.Categories;
 using Tabsareh.Domain.Models.ContentOwners;
 using Tabsareh.Domain.Models.Roles;
@@ -18,6 +19,7 @@ namespace Tabsareh.Infrastructure.Persistance
         public DbSet<ContentOwner> ContentOwners => Set<ContentOwner>();
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<User> Users => Set<User>();
+        public DbSet<Blog> Blogs => Set<Blog>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
