@@ -2,6 +2,7 @@ using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -16,6 +17,12 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 var pepper = builder.Configuration["Security:Pepper"];
+const long maxUploadSize = 500L * 1024L * 1024L;
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = maxUploadSize;
+});
 
 // ================= JWT =================
 var signingKey = new SymmetricSecurityKey(
@@ -48,13 +55,21 @@ builder.Services.AddAuthorization(options =>
         "view_dashboard", "manage_admins", "manage_roles",
         "manage_teachers", "manage_content_owners",
         "manage_categories", "manage_users", "manage_blogs",
-        "manage_dynamic_pages"
+        "manage_dynamic_pages", "manage_courses",
+        "manage_course_chapters", "manage_discounts"
     };
     foreach (var perm in permissions)
         options.AddPolicy(perm, policy => policy.RequireClaim("permission", perm));
 });
 
 // ================= Controllers =================
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = maxUploadSize;
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
+
 builder.Services.AddControllers(a =>
 {
     a.Conventions.Add(new CqrsModelConvention());

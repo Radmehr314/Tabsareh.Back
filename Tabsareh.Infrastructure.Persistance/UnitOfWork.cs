@@ -3,7 +3,9 @@ using Tabsareh.Domain.Models.Admins;
 using Tabsareh.Domain.Models.Blogs;
 using Tabsareh.Domain.Models.Categories;
 using Tabsareh.Domain.Models.ContentOwners;
+using Tabsareh.Domain.Models.Courses;
 using Tabsareh.Domain.Models.DynamicPages;
+using Tabsareh.Domain.Models.Discounts;
 using Tabsareh.Domain.Models.Roles;
 using Tabsareh.Domain.Models.Teachers;
 using Tabsareh.Domain.Models.Users;
@@ -20,6 +22,9 @@ namespace Tabsareh.Infrastructure.Persistance
         public IUserRepository UserRepository { get; set; }
         public IBlogRepository BlogRepository { get; set; }
         public IDynamicPageRepository DynamicPageRepository { get; set; }
+        public IDiscountCodeRepository DiscountCodeRepository { get; set; }
+        public ICourseRepository CourseRepository { get; set; }
+        public ICourseChapterRepository CourseChapterRepository { get; set; }
 
         public UnitOfWork(
             IAdminRepository adminRepository,
@@ -29,7 +34,10 @@ namespace Tabsareh.Infrastructure.Persistance
             ICategoryRepository categoryRepository,
             IUserRepository userRepository,
             IBlogRepository blogRepository,
-            IDynamicPageRepository dynamicPageRepository)
+            IDynamicPageRepository dynamicPageRepository,
+            IDiscountCodeRepository discountCodeRepository,
+            ICourseRepository courseRepository,
+            ICourseChapterRepository courseChapterRepository)
         {
             AdminRepository = adminRepository;
             RoleRepository = roleRepository;
@@ -39,6 +47,9 @@ namespace Tabsareh.Infrastructure.Persistance
             UserRepository = userRepository;
             BlogRepository = blogRepository;
             DynamicPageRepository = dynamicPageRepository;
+            DiscountCodeRepository = discountCodeRepository;
+            CourseRepository = courseRepository;
+            CourseChapterRepository = courseChapterRepository;
         }
     }
 }

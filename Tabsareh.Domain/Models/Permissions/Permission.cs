@@ -11,6 +11,9 @@ namespace Tabsareh.Domain.Models.Permissions
         public const string ManageUsers = "manage_users";
         public const string ManageBlogs = "manage_blogs";
         public const string ManageDynamicPages = "manage_dynamic_pages";
+        public const string ManageCourses = "manage_courses";
+        public const string ManageCourseChapters = "manage_course_chapters";
+        public const string ManageDiscounts = "manage_discounts";
 
         public static readonly IReadOnlyList<string> All = new[]
         {
@@ -23,6 +26,9 @@ namespace Tabsareh.Domain.Models.Permissions
             ManageUsers,
             ManageBlogs,
             ManageDynamicPages,
+            ManageCourses,
+            ManageCourseChapters,
+            ManageDiscounts,
         };
     }
 }

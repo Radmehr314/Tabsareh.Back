@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tabsareh.Infrastructure.Persistance;
 
@@ -11,9 +12,11 @@ using Tabsareh.Infrastructure.Persistance;
 namespace Tabsareh.Infrastructure.Persistance.Migrations
 {
     [DbContext(typeof(TabsarehDbContext))]
-    partial class TabsarehDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260625163001_AddCoursesAndChapters")]
+    partial class AddCoursesAndChapters
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -255,15 +258,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("DiscountEndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal?>("DiscountPercent")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<DateTime?>("DiscountStartDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("DurationMinutes")
                         .HasColumnType("int");
 
@@ -274,9 +268,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("SettlementBasePrice")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("TeacherId")
@@ -345,53 +336,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     b.HasIndex("DisplayOrder");
 
                     b.ToTable("CourseChapters", (string)null);
-                });
-
-            modelBuilder.Entity("Tabsareh.Domain.Models.Courses.CourseChapterVideo", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("CourseChapterId")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Duration")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<string>("ExternalVideoId")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UploadStatus")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("VideoUrl")
-                        .HasMaxLength(1024)
-                        .HasColumnType("nvarchar(1024)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CourseChapterId");
-
-                    b.ToTable("CourseChapterVideos", (string)null);
                 });
 
             modelBuilder.Entity("Tabsareh.Domain.Models.Courses.CoursePdfFile", b =>
@@ -465,56 +409,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     b.HasIndex("CourseId");
 
                     b.ToTable("CourseSampleVideos", (string)null);
-                });
-
-            modelBuilder.Entity("Tabsareh.Domain.Models.Discounts.DiscountCode", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("DiscountPercent")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<DateTime>("EndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("StartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UsageLimit")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UsedCount")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Code")
-                        .IsUnique();
-
-                    b.HasIndex("IsDeleted");
-
-                    b.ToTable("DiscountCodes", (string)null);
                 });
 
             modelBuilder.Entity("Tabsareh.Domain.Models.DynamicPages.DynamicPage", b =>
@@ -735,15 +629,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Tabsareh.Domain.Models.Courses.CourseChapterVideo", b =>
-                {
-                    b.HasOne("Tabsareh.Domain.Models.Courses.CourseChapter", null)
-                        .WithMany("Videos")
-                        .HasForeignKey("CourseChapterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Tabsareh.Domain.Models.Courses.CoursePdfFile", b =>
                 {
                     b.HasOne("Tabsareh.Domain.Models.Courses.Course", null)
@@ -769,11 +654,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     b.Navigation("PdfFiles");
 
                     b.Navigation("SampleVideos");
-                });
-
-            modelBuilder.Entity("Tabsareh.Domain.Models.Courses.CourseChapter", b =>
-                {
-                    b.Navigation("Videos");
                 });
 #pragma warning restore 612, 618
         }
