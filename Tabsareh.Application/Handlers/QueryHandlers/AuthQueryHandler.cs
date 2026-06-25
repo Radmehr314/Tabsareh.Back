@@ -3,6 +3,8 @@ using Tabsareh.Application.Contracts.Contracts;
 using Tabsareh.Application.Contracts.Queries.Auth;
 using Tabsareh.Application.Contracts.QueryResult.Auth;
 using Tabsareh.Domain;
+using Tabsareh.Domain.Models.Auth;
+using Tabsareh.Domain.Models.Users;
 using Tabsareh.Framework.Application;
 using Tabsareh.Framework.Application.Exceptions;
 using Tabsareh.Framework.Application.Security;
@@ -12,6 +14,8 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
     public class AuthQueryHandler :
         IQueryHandler<LoginAdminQuery, LoginDto>,
         IQueryHandler<LoginQuery, LoginResultDto>,
+        IQueryHandler<RequestUserOtpQuery, RequestUserOtpResultDto>,
+        IQueryHandler<VerifyUserOtpQuery, LoginResultDto>,
         IQueryHandler<GetCurrentUserQuery, CurrentUserDto>
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -33,23 +37,18 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
                 ?? throw new InvalidOperationException("Missing Security:Pepper");
 
             var admin = await _unitOfWork.AdminRepository.GetByUserNameAsync(query.UserName);
-            if (admin is null) throw new NotFoundException("نام کاربری یا رمز عبور صحیح نمیباشد.");
+            if (admin is null) throw new NotFoundException("Invalid username or password.");
 
             var isValidUser = HashMaker.Verify(query.Password, pepper, admin.Salt, admin.Password);
-            if (!isValidUser)
-                throw new NotFoundException("نام کاربری یا رمز عبور صحیح نمیباشد.");
-
-            if (admin.IsBan)
-                throw new UserAccessException("حساب کاربری شما محدود شده است لطفا با مجموعه تماس بگیرید.");
-
-            var permissions = await GetAdminPermissions(admin.RoleId);
+            if (!isValidUser) throw new NotFoundException("Invalid username or password.");
+            if (admin.IsBan) throw new UserAccessException("User account is banned.");
 
             var token = _tokenService.Generate(
                 userId: admin.Id,
                 tokenVersion: 1,
                 deviceId: "web",
                 role: "admin",
-                permissions: permissions);
+                permissions: await GetAdminPermissions(admin.RoleId));
 
             return new LoginDto
             {
@@ -67,8 +66,7 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             var admin = await _unitOfWork.AdminRepository.GetByUserNameAsync(query.UserName);
             if (admin is not null && HashMaker.Verify(query.Password, pepper, admin.Salt, admin.Password))
             {
-                if (admin.IsBan)
-                    throw new UserAccessException("حساب کاربری شما محدود شده است لطفا با مجموعه تماس بگیرید.");
+                if (admin.IsBan) throw new UserAccessException("User account is banned.");
 
                 var adminToken = _tokenService.Generate(
                     userId: admin.Id,
@@ -89,8 +87,7 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             var owner = await _unitOfWork.ContentOwnerRepository.GetByUserNameAsync(query.UserName);
             if (owner is not null && HashMaker.Verify(query.Password, pepper, owner.Salt, owner.Password))
             {
-                if (owner.IsBan)
-                    throw new UserAccessException("حساب کاربری شما محدود شده است لطفا با مجموعه تماس بگیرید.");
+                if (owner.IsBan) throw new UserAccessException("User account is banned.");
 
                 var ownerToken = _tokenService.Generate(
                     userId: owner.Id,
@@ -108,7 +105,62 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
                 };
             }
 
-            throw new NotFoundException("نام کاربری یا رمز عبور صحیح نمیباشد.");
+            throw new NotFoundException("Invalid username or password.");
+        }
+
+        public async Task<RequestUserOtpResultDto> Handle(RequestUserOtpQuery query)
+        {
+            var phone = NormalizePhone(query.Phone);
+            if (string.IsNullOrWhiteSpace(phone))
+                throw new UserAccessException("Phone is required.");
+
+            var code = Random.Shared.Next(100000, 999999).ToString();
+            var otp = new SmsOtp(phone, code, DateTime.UtcNow.AddMinutes(2));
+            var id = await _unitOfWork.SmsOtpRepository.AddAsync(otp);
+
+            return new RequestUserOtpResultDto
+            {
+                Id = id,
+                Phone = phone,
+                ExpiresInSeconds = 120,
+                Code = code
+            };
+        }
+
+        public async Task<LoginResultDto> Handle(VerifyUserOtpQuery query)
+        {
+            var phone = NormalizePhone(query.Phone);
+            var code = query.Code?.Trim();
+            if (string.IsNullOrWhiteSpace(phone) || string.IsNullOrWhiteSpace(code))
+                throw new UserAccessException("Phone and code are required.");
+
+            var otp = await _unitOfWork.SmsOtpRepository.GetLatestValidAsync(phone, code);
+            if (otp is null) throw new UserAccessException("Invalid or expired code.");
+
+            var user = await _unitOfWork.UserRepository.GetByPhoneAsync(phone);
+            if (user is null)
+            {
+                user = new User("User", string.Empty, phone, phone);
+                await _unitOfWork.UserRepository.AddAsync(user);
+            }
+
+            otp.MarkUsed();
+            await _unitOfWork.SmsOtpRepository.UpdateAsync(otp);
+
+            var token = _tokenService.Generate(
+                userId: user.Id,
+                tokenVersion: 1,
+                deviceId: "mobile",
+                role: "user",
+                permissions: new List<string>());
+
+            return new LoginResultDto
+            {
+                AccessToken = token.Value,
+                TokenType = "Bearer",
+                ExpiresIn = (int)token.ExpiresIn.TotalSeconds,
+                Role = "user"
+            };
         }
 
         public async Task<CurrentUserDto> Handle(GetCurrentUserQuery query)
@@ -117,12 +169,12 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             var role = _userInfoService.GetRoleByToken();
 
             if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(role))
-                throw new UserAccessException("توکن نامعتبر است.");
+                throw new UserAccessException("Invalid token.");
 
             if (role == "admin")
             {
                 var admin = await _unitOfWork.AdminRepository.GetByIdAsync(userId);
-                if (admin is null || admin.IsDeleted) throw new NotFoundException("کاربر یافت نشد.");
+                if (admin is null || admin.IsDeleted) throw new NotFoundException("User not found.");
 
                 var adminRole = !string.IsNullOrWhiteSpace(admin.RoleId)
                     ? await _unitOfWork.RoleRepository.GetByIdAsync(admin.RoleId)
@@ -144,7 +196,7 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             if (role == "content_owner")
             {
                 var owner = await _unitOfWork.ContentOwnerRepository.GetByIdAsync(userId);
-                if (owner is null || owner.IsDeleted) throw new NotFoundException("کاربر یافت نشد.");
+                if (owner is null || owner.IsDeleted) throw new NotFoundException("User not found.");
 
                 return new CurrentUserDto
                 {
@@ -155,7 +207,22 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
                 };
             }
 
-            throw new UserAccessException("نوع کاربر پشتیبانی نمی‌شود.");
+            if (role == "user")
+            {
+                var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
+                if (user is null || user.IsDeleted) throw new NotFoundException("User not found.");
+
+                return new CurrentUserDto
+                {
+                    Id = user.Id,
+                    Role = "user",
+                    FullName = $"{user.FirstName} {user.LastName}".Trim(),
+                    UserName = user.UserName,
+                    Phone = user.Phone
+                };
+            }
+
+            throw new UserAccessException("Unsupported user type.");
         }
 
         private async Task<List<string>> GetAdminPermissions(string? roleId)
@@ -166,5 +233,8 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             var role = await _unitOfWork.RoleRepository.GetByIdAsync(roleId);
             return role?.Permissions ?? new List<string>();
         }
+
+        private static string NormalizePhone(string? phone)
+            => (phone ?? string.Empty).Trim().Replace(" ", string.Empty).Replace("-", string.Empty);
     }
 }

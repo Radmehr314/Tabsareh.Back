@@ -39,6 +39,7 @@ namespace Tabsareh.Infrastructure.Config
             builder.RegisterType<UnitOfWork>().As<IUnitOfWork>().InstancePerLifetimeScope();
             builder.RegisterType<TokenService>().As<ITokenService>().InstancePerLifetimeScope();
             builder.RegisterType<UserInfoService>().As<IUserInfoService>().InstancePerLifetimeScope();
+            builder.RegisterType<LicenseProvisioningService>().As<ILicenseProvisioningService>().InstancePerLifetimeScope();
 
             builder.RegisterType<AutofacCommandBus>().As<ICommandBus>().InstancePerLifetimeScope();
             builder.RegisterType<AutofacQueryBus>().As<IQueryBus>().InstancePerLifetimeScope();

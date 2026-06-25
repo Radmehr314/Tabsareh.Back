@@ -17,6 +17,9 @@ namespace Tabsareh.Infrastructure.Persistance.Repositories
         public async Task<User?> GetByIdAsync(string id)
             => await _db.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
 
+        public async Task<User?> GetByPhoneAsync(string phone)
+            => await _db.Users.AsNoTracking().FirstOrDefaultAsync(x => x.Phone == phone && !x.IsDeleted);
+
         public async Task<IEnumerable<User>> GetAllAsync()
             => await _db.Users.AsNoTracking().Where(x => !x.IsDeleted).ToListAsync();
 
@@ -43,6 +46,14 @@ namespace Tabsareh.Infrastructure.Persistance.Repositories
             return await _db.Users.AnyAsync(x =>
                 !x.IsDeleted &&
                 x.UserName == userName &&
+                (ignoreId == null || x.Id != ignoreId));
+        }
+
+        public async Task<bool> ExistsByPhoneAsync(string phone, string? ignoreId = null)
+        {
+            return await _db.Users.AnyAsync(x =>
+                !x.IsDeleted &&
+                x.Phone == phone &&
                 (ignoreId == null || x.Id != ignoreId));
         }
 

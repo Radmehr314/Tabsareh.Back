@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tabsareh.Infrastructure.Persistance;
 
@@ -11,9 +12,11 @@ using Tabsareh.Infrastructure.Persistance;
 namespace Tabsareh.Infrastructure.Persistance.Migrations
 {
     [DbContext(typeof(TabsarehDbContext))]
-    partial class TabsarehDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260625213408_AddOrderItemsAndInvoice")]
+    partial class AddOrderItemsAndInvoice
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -721,16 +724,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
-                    b.Property<string>("ContentOwnerIdSnapshot")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("ContentOwnerNameSnapshot")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
                     b.Property<decimal>("ContentOwnerSharePercentSnapshot")
                         .HasColumnType("decimal(5,2)");
 
@@ -781,8 +774,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ContentOwnerIdSnapshot");
 
                     b.HasIndex("CourseId");
 

@@ -14,6 +14,9 @@ namespace Tabsareh.Infrastructure.Persistance.Repositories
         public async Task<DiscountCode?> GetByIdAsync(string id)
             => await _db.DiscountCodes.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
 
+        public async Task<DiscountCode?> GetByCodeAsync(string code)
+            => await _db.DiscountCodes.FirstOrDefaultAsync(x => x.Code == code.Trim().ToUpper() && !x.IsDeleted);
+
         public async Task<bool> ExistsByCodeAsync(string code, string? ignoreId = null)
             => await _db.DiscountCodes.AnyAsync(x => x.Code == code.Trim().ToUpper() && !x.IsDeleted && x.Id != ignoreId);
 

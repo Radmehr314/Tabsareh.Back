@@ -1,11 +1,13 @@
 using Tabsareh.Domain;
 using Tabsareh.Domain.Models.Admins;
+using Tabsareh.Domain.Models.Auth;
 using Tabsareh.Domain.Models.Blogs;
 using Tabsareh.Domain.Models.Categories;
 using Tabsareh.Domain.Models.ContentOwners;
 using Tabsareh.Domain.Models.Courses;
 using Tabsareh.Domain.Models.DynamicPages;
 using Tabsareh.Domain.Models.Discounts;
+using Tabsareh.Domain.Models.Orders;
 using Tabsareh.Domain.Models.Roles;
 using Tabsareh.Domain.Models.Teachers;
 using Tabsareh.Domain.Models.Users;
@@ -15,6 +17,7 @@ namespace Tabsareh.Infrastructure.Persistance
     public class UnitOfWork : IUnitOfWork
     {
         public IAdminRepository AdminRepository { get; set; }
+        public ISmsOtpRepository SmsOtpRepository { get; set; }
         public IRoleRepository RoleRepository { get; set; }
         public ITeacherRepository TeacherRepository { get; set; }
         public IContentOwnerRepository ContentOwnerRepository { get; set; }
@@ -23,11 +26,13 @@ namespace Tabsareh.Infrastructure.Persistance
         public IBlogRepository BlogRepository { get; set; }
         public IDynamicPageRepository DynamicPageRepository { get; set; }
         public IDiscountCodeRepository DiscountCodeRepository { get; set; }
+        public IOrderRepository OrderRepository { get; set; }
         public ICourseRepository CourseRepository { get; set; }
         public ICourseChapterRepository CourseChapterRepository { get; set; }
 
         public UnitOfWork(
             IAdminRepository adminRepository,
+            ISmsOtpRepository smsOtpRepository,
             IRoleRepository roleRepository,
             ITeacherRepository teacherRepository,
             IContentOwnerRepository contentOwnerRepository,
@@ -36,10 +41,12 @@ namespace Tabsareh.Infrastructure.Persistance
             IBlogRepository blogRepository,
             IDynamicPageRepository dynamicPageRepository,
             IDiscountCodeRepository discountCodeRepository,
+            IOrderRepository orderRepository,
             ICourseRepository courseRepository,
             ICourseChapterRepository courseChapterRepository)
         {
             AdminRepository = adminRepository;
+            SmsOtpRepository = smsOtpRepository;
             RoleRepository = roleRepository;
             TeacherRepository = teacherRepository;
             ContentOwnerRepository = contentOwnerRepository;
@@ -48,6 +55,7 @@ namespace Tabsareh.Infrastructure.Persistance
             BlogRepository = blogRepository;
             DynamicPageRepository = dynamicPageRepository;
             DiscountCodeRepository = discountCodeRepository;
+            OrderRepository = orderRepository;
             CourseRepository = courseRepository;
             CourseChapterRepository = courseChapterRepository;
         }

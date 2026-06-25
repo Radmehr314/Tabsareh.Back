@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tabsareh.Infrastructure.Persistance;
 
@@ -11,9 +12,11 @@ using Tabsareh.Infrastructure.Persistance;
 namespace Tabsareh.Infrastructure.Persistance.Migrations
 {
     [DbContext(typeof(TabsarehDbContext))]
-    partial class TabsarehDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260625203909_AddOrders")]
+    partial class AddOrders
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -79,46 +82,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     b.HasIndex("UserName");
 
                     b.ToTable("Admins", (string)null);
-                });
-
-            modelBuilder.Entity("Tabsareh.Domain.Models.Auth.SmsOtp", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("nvarchar(16)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ExpiresAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsUsed")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("UsedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Phone");
-
-                    b.HasIndex("Phone", "Code", "IsUsed", "ExpiresAt");
-
-                    b.ToTable("SmsOtps", (string)null);
                 });
 
             modelBuilder.Entity("Tabsareh.Domain.Models.Blogs.Blog", b =>
@@ -638,10 +601,8 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     b.Property<decimal>("ContentOwnerSharePercentSnapshot")
                         .HasColumnType("decimal(5,2)");
 
-                    b.Property<decimal>("CourseDiscountAmount")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("CourseId")
+                        .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
@@ -650,16 +611,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("DiscountCode")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<decimal>("DiscountCodeAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("DiscountCodePercentSnapshot")
-                        .HasColumnType("decimal(5,2)");
 
                     b.Property<decimal>("DiscountPercentSnapshot")
                         .HasColumnType("decimal(5,2)");
@@ -670,9 +621,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
 
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<decimal>("PayableAmount")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
@@ -690,9 +638,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                         .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
-
-                    b.Property<decimal>("SubtotalAmount")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -713,82 +658,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Orders", (string)null);
-                });
-
-            modelBuilder.Entity("Tabsareh.Domain.Models.Orders.OrderItem", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("ContentOwnerIdSnapshot")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("ContentOwnerNameSnapshot")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<decimal>("ContentOwnerSharePercentSnapshot")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<decimal>("CourseDiscountAmountSnapshot")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("CourseDiscountPercentSnapshot")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<string>("CourseId")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<decimal>("CoursePriceSnapshot")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("CourseTitleSnapshot")
-                        .IsRequired()
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("DiscountCodeAmountSnapshot")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("DiscountCodePercentSnapshot")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<decimal>("FinalAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("LicenseCode")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("OrderId")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<decimal>("SettlementBasePriceSnapshot")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ContentOwnerIdSnapshot");
-
-                    b.HasIndex("CourseId");
-
-                    b.HasIndex("OrderId");
-
-                    b.ToTable("OrderItems", (string)null);
                 });
 
             modelBuilder.Entity("Tabsareh.Domain.Models.Roles.Role", b =>
@@ -980,27 +849,13 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     b.HasOne("Tabsareh.Domain.Models.Courses.Course", null)
                         .WithMany()
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("Tabsareh.Domain.Models.Users.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Tabsareh.Domain.Models.Orders.OrderItem", b =>
-                {
-                    b.HasOne("Tabsareh.Domain.Models.Courses.Course", null)
-                        .WithMany()
-                        .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Tabsareh.Domain.Models.Orders.Order", null)
-                        .WithMany("Items")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -1016,11 +871,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
             modelBuilder.Entity("Tabsareh.Domain.Models.Courses.CourseChapter", b =>
                 {
                     b.Navigation("Videos");
-                });
-
-            modelBuilder.Entity("Tabsareh.Domain.Models.Orders.Order", b =>
-                {
-                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }

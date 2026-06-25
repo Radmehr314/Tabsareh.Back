@@ -34,6 +34,16 @@ namespace Tabsareh.Domain.Models.Discounts
 
         public void Delete() => IsDeleted = true;
 
+        public bool CanUse(DateTime date)
+            => !IsDeleted && UsedCount < UsageLimit && date.Date >= StartDate.Date && date.Date <= EndDate.Date;
+
+        public void Use()
+        {
+            if (!CanUse(DateTime.Now)) throw new InvalidOperationException("Discount code is not usable.");
+            UsedCount++;
+            UpdatedAt = DateTime.Now;
+        }
+
         public string Title { get; private set; }
         public string Code { get; private set; }
         public int UsageLimit { get; private set; }

@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Tabsareh.Framework.Api;
-using Tabsareh.Framework.Application;
 using Tabsareh.Application.Contracts.Queries.Auth;
 using Tabsareh.Application.Contracts.QueryResult.Auth;
+using Tabsareh.Framework.Api;
+using Tabsareh.Framework.Application;
 
 namespace Tabsareh.Api.Controllers.Auth
 {
@@ -13,23 +13,23 @@ namespace Tabsareh.Api.Controllers.Auth
 
         [HttpPost("LoginAdmin")]
         public async Task<ActionResult<LoginDto>> LoginAdmin([FromBody] LoginAdminQuery query)
-        {
-            return Ok(await Bus.Dispatch<LoginAdminQuery, LoginDto>(query));
-        }
+            => Ok(await Bus.Dispatch<LoginAdminQuery, LoginDto>(query));
 
-        /// <summary>ورود یکپارچه برای ادمین‌ها و صاحبان اثر.</summary>
         [HttpPost("Login")]
         public async Task<ActionResult<LoginResultDto>> Login([FromBody] LoginQuery query)
-        {
-            return Ok(await Bus.Dispatch<LoginQuery, LoginResultDto>(query));
-        }
+            => Ok(await Bus.Dispatch<LoginQuery, LoginResultDto>(query));
 
-        /// <summary>اطلاعات کاربر لاگین‌شده (ادمین یا صاحب اثر) برای نمایش در پنل.</summary>
+        [HttpPost("RequestUserOtp")]
+        public async Task<ActionResult<RequestUserOtpResultDto>> RequestUserOtp([FromBody] RequestUserOtpQuery query)
+            => Ok(await Bus.Dispatch<RequestUserOtpQuery, RequestUserOtpResultDto>(query));
+
+        [HttpPost("VerifyUserOtp")]
+        public async Task<ActionResult<LoginResultDto>> VerifyUserOtp([FromBody] VerifyUserOtpQuery query)
+            => Ok(await Bus.Dispatch<VerifyUserOtpQuery, LoginResultDto>(query));
+
         [HttpGet("Me")]
         [Authorize]
         public async Task<ActionResult<CurrentUserDto>> Me()
-        {
-            return Ok(await Bus.Dispatch<GetCurrentUserQuery, CurrentUserDto>(new GetCurrentUserQuery()));
-        }
+            => Ok(await Bus.Dispatch<GetCurrentUserQuery, CurrentUserDto>(new GetCurrentUserQuery()));
     }
 }

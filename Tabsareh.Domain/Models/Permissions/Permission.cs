@@ -14,6 +14,7 @@ namespace Tabsareh.Domain.Models.Permissions
         public const string ManageCourses = "manage_courses";
         public const string ManageCourseChapters = "manage_course_chapters";
         public const string ManageDiscounts = "manage_discounts";
+        public const string ManageOrders = "manage_orders";
 
         public static readonly IReadOnlyList<string> All = new[]
         {
@@ -29,6 +30,7 @@ namespace Tabsareh.Domain.Models.Permissions
             ManageCourses,
             ManageCourseChapters,
             ManageDiscounts,
+            ManageOrders,
         };
     }
 }

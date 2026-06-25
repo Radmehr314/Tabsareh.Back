@@ -1,0 +1,82 @@
+using Tabsareh.Application.Contracts.Contracts;
+using Tabsareh.Application.Contracts.Queries.Orders;
+using Tabsareh.Application.Contracts.QueryResult.Orders;
+using Tabsareh.Application.Mapper;
+using Tabsareh.Application.Services;
+using Tabsareh.Domain;
+using Tabsareh.Domain.Models.Orders;
+using Tabsareh.Framework.Application;
+using Tabsareh.Framework.Application.Exceptions;
+
+namespace Tabsareh.Application.Handlers.QueryHandlers
+{
+    public class OrderQueryHandler :
+        IQueryHandler<GetOrdersPagedQuery, GetOrdersPagedQueryResult>,
+        IQueryHandler<GetPendingCardToCardOrdersQuery, GetOrdersPagedQueryResult>,
+        IQueryHandler<PreviewOrderInvoiceQuery, OrderInvoiceResult>,
+        IQueryHandler<GetMyOrdersQuery, List<OrderItemResult>>
+    {
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IUserInfoService _userInfoService;
+
+        public OrderQueryHandler(IUnitOfWork unitOfWork, IUserInfoService userInfoService)
+        {
+            _unitOfWork = unitOfWork;
+            _userInfoService = userInfoService;
+        }
+
+        public async Task<GetOrdersPagedQueryResult> Handle(GetOrdersPagedQuery query)
+        {
+            var paged = await _unitOfWork.OrderRepository.GetPagedAsync(query.Options, new OrderFilter
+            {
+                Search = query.Search,
+                Status = query.Status,
+                PaymentMethod = query.PaymentMethod,
+                ContentOwnerId = query.ContentOwnerId,
+                FromDate = query.FromDate,
+                ToDate = query.ToDate
+            });
+
+            return ToPagedResult(paged);
+        }
+
+        public async Task<GetOrdersPagedQueryResult> Handle(GetPendingCardToCardOrdersQuery query)
+        {
+            var paged = await _unitOfWork.OrderRepository.GetPagedAsync(query.Options, new OrderFilter
+            {
+                Search = query.Search,
+                Status = OrderStatuses.PendingApproval,
+                PaymentMethod = OrderPaymentMethods.CardToCard
+            });
+
+            return ToPagedResult(paged);
+        }
+
+        public async Task<List<OrderItemResult>> Handle(GetMyOrdersQuery query)
+        {
+            var userId = _userInfoService.GetUserIdByToken();
+            if (string.IsNullOrWhiteSpace(userId)) throw new UserAccessException("کاربر نامعتبر است.");
+            var orders = await _unitOfWork.OrderRepository.GetByUserIdAsync(userId);
+            return orders.Select(x => x.ToItem()).ToList();
+        }
+
+        public async Task<OrderInvoiceResult> Handle(PreviewOrderInvoiceQuery query)
+        {
+            var role = _userInfoService.GetRoleByToken();
+            if (role != "user") throw new UserAccessException("Only users can preview orders.");
+            var (invoice, _, _) = await OrderInvoiceBuilder.BuildAsync(_unitOfWork, query.CourseIds, query.DiscountCode);
+            return invoice;
+        }
+
+        private static GetOrdersPagedQueryResult ToPagedResult(Domain.Common.PagedResult<OrderListItem> paged)
+        {
+            return new GetOrdersPagedQueryResult
+            {
+                Items = paged.Items.Select(x => x.ToItem()).ToList(),
+                TotalCount = (int)paged.TotalCount,
+                Skip = paged.Skip,
+                Limit = paged.Limit
+            };
+        }
+    }
+}
