@@ -15,6 +15,10 @@ namespace Tabsareh.Infrastructure.Persistance.Configurations
             b.Property(x => x.ParentId).HasMaxLength(64);
             b.HasIndex(x => x.ParentId);
             b.HasIndex(x => x.Name);
+            b.HasOne<Category>()
+                .WithMany()
+                .HasForeignKey(x => x.ParentId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

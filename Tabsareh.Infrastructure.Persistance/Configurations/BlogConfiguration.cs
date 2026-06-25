@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Tabsareh.Domain.Models.Blogs;
+using Tabsareh.Domain.Models.Categories;
 
 namespace Tabsareh.Infrastructure.Persistance.Configurations
 {
@@ -22,6 +23,10 @@ namespace Tabsareh.Infrastructure.Persistance.Configurations
             b.HasIndex(x => x.Slug);
             b.HasIndex(x => x.CategoryId);
             b.HasIndex(x => x.IsPublished);
+            b.HasOne<Category>()
+                .WithMany()
+                .HasForeignKey(x => x.CategoryId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }
