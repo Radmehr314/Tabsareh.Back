@@ -30,18 +30,18 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
         public async Task<CommandResult> Handle(CreateOrderCommand command)
         {
             if (command.PaymentMethod != OrderPaymentMethods.CardToCard && command.PaymentMethod != OrderPaymentMethods.Gateway)
-                throw new UserAccessException("Invalid payment method.");
+                throw new UserAccessException("روش پرداخت نامعتبر است.");
 
             var tokenUserId = _userInfoService.GetUserIdByToken();
             var tokenRole = _userInfoService.GetRoleByToken();
-            if (tokenRole != "user") throw new UserAccessException("Only users can create orders.");
-            if (string.IsNullOrWhiteSpace(tokenUserId)) throw new UserAccessException("Invalid user.");
+            if (tokenRole != "user") throw new UserAccessException("فقط کاربران می‌توانند سفارش ثبت کنند.");
+            if (string.IsNullOrWhiteSpace(tokenUserId)) throw new UserAccessException("کاربر نامعتبر است.");
 
             var user = await _unitOfWork.UserRepository.GetByIdAsync(tokenUserId);
-            if (user is null || user.IsDeleted) throw new NotFoundException("User not found.");
+            if (user is null || user.IsDeleted) throw new NotFoundException("کاربر یافت نشد.");
 
             if (command.PaymentMethod == OrderPaymentMethods.CardToCard && string.IsNullOrWhiteSpace(command.CardToCardTrackingNumber))
-                throw new UserAccessException("Card-to-card tracking number is required.");
+                throw new UserAccessException("شماره پیگیری کارت به کارت الزامی است.");
 
             var (invoice, courses, discountCode) = await OrderInvoiceBuilder.BuildAsync(_unitOfWork, command.CourseIds, command.DiscountCode);
 
@@ -86,9 +86,9 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
         public async Task<CommandResult> Handle(ApproveCardToCardOrderCommand command)
         {
             var order = await _unitOfWork.OrderRepository.GetByIdAsync(command.OrderId);
-            if (order is null) throw new NotFoundException("Order not found.");
-            if (order.PaymentMethod != OrderPaymentMethods.CardToCard) throw new UserAccessException("Order is not card-to-card.");
-            if (order.Status != OrderStatuses.PendingApproval) throw new UserAccessException("Order is not pending approval.");
+            if (order is null) throw new NotFoundException("سفارش یافت نشد.");
+            if (order.PaymentMethod != OrderPaymentMethods.CardToCard) throw new UserAccessException("این سفارش کارت به کارت نیست.");
+            if (order.Status != OrderStatuses.PendingApproval) throw new UserAccessException("این سفارش در انتظار تأیید نیست.");
 
             foreach (var item in order.Items)
             {
@@ -104,9 +104,9 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
         public async Task<CommandResult> Handle(RejectCardToCardOrderCommand command)
         {
             var order = await _unitOfWork.OrderRepository.GetByIdAsync(command.OrderId);
-            if (order is null) throw new NotFoundException("Order not found.");
-            if (order.PaymentMethod != OrderPaymentMethods.CardToCard) throw new UserAccessException("Order is not card-to-card.");
-            if (order.Status != OrderStatuses.PendingApproval) throw new UserAccessException("Order is not pending approval.");
+            if (order is null) throw new NotFoundException("سفارش یافت نشد.");
+            if (order.PaymentMethod != OrderPaymentMethods.CardToCard) throw new UserAccessException("این سفارش کارت به کارت نیست.");
+            if (order.Status != OrderStatuses.PendingApproval) throw new UserAccessException("این سفارش در انتظار تأیید نیست.");
 
             order.Reject(command.Reason);
             await _unitOfWork.OrderRepository.UpdateAsync(order);

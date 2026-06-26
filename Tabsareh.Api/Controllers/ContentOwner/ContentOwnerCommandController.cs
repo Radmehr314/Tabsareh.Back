@@ -40,5 +40,11 @@ namespace Tabsareh.Api.Controllers.ContentOwner
         {
             return Ok(await Bus.Dispatch(command));
         }
+
+        [HttpPost("AddContentOwnerPayment")]
+        public async Task<ActionResult<CommandResult>> AddContentOwnerPayment([FromBody] AddContentOwnerPaymentCommand command)
+        {
+            return Ok(await Bus.Dispatch(command));
+        }
     }
 }

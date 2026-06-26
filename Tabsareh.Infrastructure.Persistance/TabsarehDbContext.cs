@@ -4,6 +4,7 @@ using Tabsareh.Domain.Models.Auth;
 using Tabsareh.Domain.Models.Blogs;
 using Tabsareh.Domain.Models.Categories;
 using Tabsareh.Domain.Models.ContentOwners;
+using Tabsareh.Domain.Models.CourseComments;
 using Tabsareh.Domain.Models.Courses;
 using Tabsareh.Domain.Models.DynamicPages;
 using Tabsareh.Domain.Models.Discounts;
@@ -23,6 +24,7 @@ namespace Tabsareh.Infrastructure.Persistance
         public DbSet<Role> Roles => Set<Role>();
         public DbSet<Teacher> Teachers => Set<Teacher>();
         public DbSet<ContentOwner> ContentOwners => Set<ContentOwner>();
+        public DbSet<ContentOwnerPayment> ContentOwnerPayments => Set<ContentOwnerPayment>();
         public DbSet<Category> Categories => Set<Category>();
         public DbSet<User> Users => Set<User>();
         public DbSet<Blog> Blogs => Set<Blog>();
@@ -35,6 +37,7 @@ namespace Tabsareh.Infrastructure.Persistance
         public DbSet<CoursePdfFile> CoursePdfFiles => Set<CoursePdfFile>();
         public DbSet<CourseChapter> CourseChapters => Set<CourseChapter>();
         public DbSet<CourseChapterVideo> CourseChapterVideos => Set<CourseChapterVideo>();
+        public DbSet<CourseComment> CourseComments => Set<CourseComment>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

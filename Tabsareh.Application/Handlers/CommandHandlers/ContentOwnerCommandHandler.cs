@@ -13,7 +13,8 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
         ICommandHandler<UpdateContentOwnerCommand>,
         ICommandHandler<BanContentOwnerCommand>,
         ICommandHandler<UnBanContentOwnerCommand>,
-        ICommandHandler<DeleteContentOwnerCommand>
+        ICommandHandler<DeleteContentOwnerCommand>,
+        ICommandHandler<AddContentOwnerPaymentCommand>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
@@ -33,7 +34,7 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
             if (existUsername) throw new UserAccessException("نام کاربری تکراری است.");
 
             var pepper = _config["Security:Pepper"]
-                ?? throw new InvalidOperationException("Missing Security:Pepper");
+                ?? throw new InvalidOperationException("کلید امنیتی پیکربندی نشده است.");
 
             var (hashPassword, salt) = HashMaker.HashPassword(command.Password, pepper);
             var owner = new ContentOwner(command.Name, command.UserName, hashPassword, salt, command.IsBan);
@@ -52,7 +53,7 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
                     throw new UserAccessException("رمز عبور با تایید آن همخوانی ندارد");
 
                 var pepper = _config["Security:Pepper"]
-                    ?? throw new InvalidOperationException("Missing Security:Pepper");
+                    ?? throw new InvalidOperationException("کلید امنیتی پیکربندی نشده است.");
 
                 var (hashPassword, salt) = HashMaker.HashPassword(command.Password, pepper);
                 owner.Update(command.Name, command.UserName, hashPassword, salt);
@@ -89,6 +90,24 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
             owner.Delete();
             var result = await _unitOfWork.ContentOwnerRepository.UpdateAsync(owner);
             return new CommandResult { Id = result.Id };
+        }
+        public async Task<CommandResult> Handle(AddContentOwnerPaymentCommand command)
+        {
+            var owner = await _unitOfWork.ContentOwnerRepository.GetByIdAsync(command.ContentOwnerId);
+            if (owner is null || owner.IsDeleted) throw new NotFoundException("صاحب اثر یافت نشد.");
+            if (command.Amount <= 0) throw new UserAccessException("مبلغ واریزی باید بزرگتر از صفر باشد.");
+            if (string.IsNullOrWhiteSpace(command.ReceiptImage)) throw new UserAccessException("تصویر رسید واریزی الزامی است.");
+
+            var payment = new ContentOwnerPayment(
+                command.ContentOwnerId,
+                command.Amount,
+                command.PaymentDate.Date,
+                command.ReceiptImage,
+                command.TrackingNumber,
+                command.Description);
+
+            var id = await _unitOfWork.ContentOwnerPaymentRepository.AddAsync(payment);
+            return new CommandResult { Id = id };
         }
     }
 }

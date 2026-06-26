@@ -24,7 +24,7 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
             if (exists) throw new UserAccessException("نام کاربری تکراری است.");
 
             if (await _unitOfWork.UserRepository.ExistsByPhoneAsync(command.Phone))
-                throw new UserAccessException("Phone is duplicated.");
+                throw new UserAccessException("شماره تماس تکراری است.");
 
             var user = new User(command.FirstName, command.LastName, command.UserName, command.Phone);
             var id = await _unitOfWork.UserRepository.AddAsync(user);
@@ -40,7 +40,7 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
             if (exists) throw new UserAccessException("نام کاربری تکراری است.");
 
             if (await _unitOfWork.UserRepository.ExistsByPhoneAsync(command.Phone, command.Id))
-                throw new UserAccessException("Phone is duplicated.");
+                throw new UserAccessException("شماره تماس تکراری است.");
 
             user.Update(command.FirstName, command.LastName, command.UserName, command.Phone);
             var result = await _unitOfWork.UserRepository.UpdateAsync(user);

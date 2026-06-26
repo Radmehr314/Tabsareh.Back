@@ -27,6 +27,8 @@ namespace Tabsareh.Infrastructure.Persistance.Configurations
             b.HasIndex(x => x.TeacherId);
             b.HasIndex(x => x.ContentOwnerId);
             b.HasIndex(x => x.IsActive);
+            b.Property(x => x.AverageRating).HasColumnType("float");
+            b.Property(x => x.CommentCount).HasDefaultValue(0);
 
             b.HasOne<Category>().WithMany().HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.NoAction);
             b.HasOne<Teacher>().WithMany().HasForeignKey(x => x.TeacherId).OnDelete(DeleteBehavior.NoAction);

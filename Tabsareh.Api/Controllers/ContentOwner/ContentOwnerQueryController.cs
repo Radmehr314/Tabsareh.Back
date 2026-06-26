@@ -32,11 +32,25 @@ namespace Tabsareh.Api.Controllers.ContentOwner
             return Ok(await Bus.Dispatch<GetContentOwnerByIdQuery, ContentOwnerItemResult>(query));
         }
 
+        [HttpGet("ContentOwnerPayments")]
+        [Authorize(Policy = "manage_content_owners")]
+        public async Task<ActionResult<List<ContentOwnerPaymentItemResult>>> GetContentOwnerPayments([FromQuery] GetContentOwnerPaymentsQuery query)
+        {
+            return Ok(await Bus.Dispatch<GetContentOwnerPaymentsQuery, List<ContentOwnerPaymentItemResult>>(query));
+        }
+
         [HttpGet("GetLoginContentOwnerInfo")]
         [Authorize(Roles = "content_owner")]
         public async Task<ActionResult<GetContentOwnerInfoByTokenQueryResult>> GetLoginContentOwnerInfo([FromQuery] GetContentOwnerInfoByTokenQuery query)
         {
             return Ok(await Bus.Dispatch<GetContentOwnerInfoByTokenQuery, GetContentOwnerInfoByTokenQueryResult>(query));
+        }
+
+        [HttpGet("MyContentOwnerPayments")]
+        [Authorize(Roles = "content_owner")]
+        public async Task<ActionResult<List<ContentOwnerPaymentItemResult>>> GetMyContentOwnerPayments()
+        {
+            return Ok(await Bus.Dispatch<GetMyContentOwnerPaymentsQuery, List<ContentOwnerPaymentItemResult>>(new GetMyContentOwnerPaymentsQuery()));
         }
     }
 }

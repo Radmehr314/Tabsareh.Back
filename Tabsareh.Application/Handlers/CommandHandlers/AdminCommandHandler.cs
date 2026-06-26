@@ -39,7 +39,7 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
             }
 
             var pepper = _config["Security:Pepper"]
-                ?? throw new InvalidOperationException("Missing Security:Pepper");
+                ?? throw new InvalidOperationException("کلید امنیتی پیکربندی نشده است.");
 
             var (hashPassword, salt) = HashMaker.HashPassword(command.Password, pepper);
             var admin = new Admin(command.UserName, command.FirstName, command.LastName, command.Phone, hashPassword, salt, command.IsBan, command.RoleId);
@@ -80,7 +80,7 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
                     throw new UserAccessException("رمز عبور با تایید آن همخوانی ندارد");
 
                 var pepper = _config["Security:Pepper"]
-                    ?? throw new InvalidOperationException("Missing Security:Pepper");
+                    ?? throw new InvalidOperationException("کلید امنیتی پیکربندی نشده است.");
 
                 var (hashPassword, salt) = HashMaker.HashPassword(command.Password, pepper);
                 admin.Update(command.UserName, command.FirstName, command.LastName, command.Phone, hashPassword, salt, command.RoleId);

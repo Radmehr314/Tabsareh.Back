@@ -37,11 +37,11 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
                 ?? throw new InvalidOperationException("Missing Security:Pepper");
 
             var admin = await _unitOfWork.AdminRepository.GetByUserNameAsync(query.UserName);
-            if (admin is null) throw new NotFoundException("Invalid username or password.");
+            if (admin is null) throw new NotFoundException("نام کاربری یا رمز عبور اشتباه است.");
 
             var isValidUser = HashMaker.Verify(query.Password, pepper, admin.Salt, admin.Password);
-            if (!isValidUser) throw new NotFoundException("Invalid username or password.");
-            if (admin.IsBan) throw new UserAccessException("User account is banned.");
+            if (!isValidUser) throw new NotFoundException("نام کاربری یا رمز عبور اشتباه است.");
+            if (admin.IsBan) throw new UserAccessException("حساب کاربری مسدود شده است.");
 
             var token = _tokenService.Generate(
                 userId: admin.Id,
@@ -66,7 +66,7 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             var admin = await _unitOfWork.AdminRepository.GetByUserNameAsync(query.UserName);
             if (admin is not null && HashMaker.Verify(query.Password, pepper, admin.Salt, admin.Password))
             {
-                if (admin.IsBan) throw new UserAccessException("User account is banned.");
+                if (admin.IsBan) throw new UserAccessException("حساب کاربری مسدود شده است.");
 
                 var adminToken = _tokenService.Generate(
                     userId: admin.Id,
@@ -87,7 +87,7 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             var owner = await _unitOfWork.ContentOwnerRepository.GetByUserNameAsync(query.UserName);
             if (owner is not null && HashMaker.Verify(query.Password, pepper, owner.Salt, owner.Password))
             {
-                if (owner.IsBan) throw new UserAccessException("User account is banned.");
+                if (owner.IsBan) throw new UserAccessException("حساب کاربری مسدود شده است.");
 
                 var ownerToken = _tokenService.Generate(
                     userId: owner.Id,
@@ -105,14 +105,14 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
                 };
             }
 
-            throw new NotFoundException("Invalid username or password.");
+            throw new NotFoundException("نام کاربری یا رمز عبور اشتباه است.");
         }
 
         public async Task<RequestUserOtpResultDto> Handle(RequestUserOtpQuery query)
         {
             var phone = NormalizePhone(query.Phone);
             if (string.IsNullOrWhiteSpace(phone))
-                throw new UserAccessException("Phone is required.");
+                throw new UserAccessException("شماره موبایل الزامی است.");
 
             var code = Random.Shared.Next(100000, 999999).ToString();
             var otp = new SmsOtp(phone, code, DateTime.UtcNow.AddMinutes(2));
@@ -132,10 +132,10 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             var phone = NormalizePhone(query.Phone);
             var code = query.Code?.Trim();
             if (string.IsNullOrWhiteSpace(phone) || string.IsNullOrWhiteSpace(code))
-                throw new UserAccessException("Phone and code are required.");
+                throw new UserAccessException("شماره موبایل و کد تأیید الزامی هستند.");
 
             var otp = await _unitOfWork.SmsOtpRepository.GetLatestValidAsync(phone, code);
-            if (otp is null) throw new UserAccessException("Invalid or expired code.");
+            if (otp is null) throw new UserAccessException("کد وارد شده نامعتبر یا منقضی شده است.");
 
             var user = await _unitOfWork.UserRepository.GetByPhoneAsync(phone);
             if (user is null)
@@ -169,12 +169,12 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             var role = _userInfoService.GetRoleByToken();
 
             if (string.IsNullOrWhiteSpace(userId) || string.IsNullOrWhiteSpace(role))
-                throw new UserAccessException("Invalid token.");
+                throw new UserAccessException("توکن نامعتبر است.");
 
             if (role == "admin")
             {
                 var admin = await _unitOfWork.AdminRepository.GetByIdAsync(userId);
-                if (admin is null || admin.IsDeleted) throw new NotFoundException("User not found.");
+                if (admin is null || admin.IsDeleted) throw new NotFoundException("کاربر یافت نشد.");
 
                 var adminRole = !string.IsNullOrWhiteSpace(admin.RoleId)
                     ? await _unitOfWork.RoleRepository.GetByIdAsync(admin.RoleId)
@@ -196,7 +196,7 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             if (role == "content_owner")
             {
                 var owner = await _unitOfWork.ContentOwnerRepository.GetByIdAsync(userId);
-                if (owner is null || owner.IsDeleted) throw new NotFoundException("User not found.");
+                if (owner is null || owner.IsDeleted) throw new NotFoundException("کاربر یافت نشد.");
 
                 return new CurrentUserDto
                 {
@@ -210,7 +210,7 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             if (role == "user")
             {
                 var user = await _unitOfWork.UserRepository.GetByIdAsync(userId);
-                if (user is null || user.IsDeleted) throw new NotFoundException("User not found.");
+                if (user is null || user.IsDeleted) throw new NotFoundException("کاربر یافت نشد.");
 
                 return new CurrentUserDto
                 {
@@ -222,7 +222,7 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
                 };
             }
 
-            throw new UserAccessException("Unsupported user type.");
+            throw new UserAccessException("نوع کاربری پشتیبانی نمی‌شود.");
         }
 
         private async Task<List<string>> GetAdminPermissions(string? roleId)

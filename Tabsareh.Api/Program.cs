@@ -56,7 +56,8 @@ builder.Services.AddAuthorization(options =>
         "manage_teachers", "manage_content_owners",
         "manage_categories", "manage_users", "manage_blogs",
         "manage_dynamic_pages", "manage_courses",
-        "manage_course_chapters", "manage_discounts", "manage_orders"
+        "manage_course_chapters", "manage_discounts", "manage_orders",
+        "manage_card_to_card", "manage_comments"
     };
     foreach (var perm in permissions)
         options.AddPolicy(perm, policy => policy.RequireClaim("permission", perm));

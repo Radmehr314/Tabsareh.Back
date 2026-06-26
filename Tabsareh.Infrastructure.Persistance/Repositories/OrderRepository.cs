@@ -38,6 +38,27 @@ namespace Tabsareh.Infrastructure.Persistance.Repositories
                 .OrderByDescending(x => x.Order.CreatedAt)
                 .ToListAsync();
 
+        public async Task<decimal> GetContentOwnerEarnedAmountAsync(string contentOwnerId)
+            => await _db.OrderItems.AsNoTracking()
+                .Where(x => x.ContentOwnerIdSnapshot == contentOwnerId)
+                .Join(_db.Orders.AsNoTracking().Where(o => o.Status == OrderStatuses.Success), x => x.OrderId, o => o.Id, (item, _) => item)
+                .SumAsync(x => (decimal?)(x.SettlementBasePriceSnapshot * x.ContentOwnerSharePercentSnapshot / 100m)) ?? 0m;
+
+        public async Task<Dictionary<string, decimal>> GetContentOwnerEarnedAmountsAsync(IEnumerable<string> contentOwnerIds)
+        {
+            var ids = contentOwnerIds.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().ToList();
+            return await _db.OrderItems.AsNoTracking()
+                .Where(x => ids.Contains(x.ContentOwnerIdSnapshot))
+                .Join(_db.Orders.AsNoTracking().Where(o => o.Status == OrderStatuses.Success), x => x.OrderId, o => o.Id, (item, _) => item)
+                .GroupBy(x => x.ContentOwnerIdSnapshot)
+                .Select(x => new
+                {
+                    ContentOwnerId = x.Key,
+                    Amount = x.Sum(i => i.SettlementBasePriceSnapshot * i.ContentOwnerSharePercentSnapshot / 100m)
+                })
+                .ToDictionaryAsync(x => x.ContentOwnerId, x => x.Amount);
+        }
+
         public async Task<string> AddAsync(Order order)
         {
             if (string.IsNullOrWhiteSpace(order.Id))
@@ -57,6 +78,23 @@ namespace Tabsareh.Infrastructure.Persistance.Repositories
             await _db.SaveChangesAsync();
             return order;
         }
+
+        public async Task<decimal> GetTotalSalesAmountAsync()
+            => await _db.Orders.AsNoTracking()
+                .Where(x => x.Status == OrderStatuses.Success)
+                .SumAsync(x => (decimal?)x.PayableAmount) ?? 0m;
+
+        public async Task<decimal> GetTodaySalesAmountAsync()
+        {
+            var today = DateTime.Today;
+            return await _db.Orders.AsNoTracking()
+                .Where(x => x.Status == OrderStatuses.Success && x.PaidAt.HasValue && x.PaidAt.Value.Date == today)
+                .SumAsync(x => (decimal?)x.PayableAmount) ?? 0m;
+        }
+
+        public async Task<int> GetPendingCardToCardCountAsync()
+            => await _db.Orders.AsNoTracking()
+                .CountAsync(x => x.Status == OrderStatuses.PendingApproval && x.PaymentMethod == OrderPaymentMethods.CardToCard);
 
         private IQueryable<OrderListItem> BuildListQuery(OrderFilter filter)
         {

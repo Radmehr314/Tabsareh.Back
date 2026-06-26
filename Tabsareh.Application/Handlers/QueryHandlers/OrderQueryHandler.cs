@@ -63,7 +63,7 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
         public async Task<OrderInvoiceResult> Handle(PreviewOrderInvoiceQuery query)
         {
             var role = _userInfoService.GetRoleByToken();
-            if (role != "user") throw new UserAccessException("Only users can preview orders.");
+            if (role != "user") throw new UserAccessException("فقط کاربران می‌توانند پیش‌فاکتور مشاهده کنند.");
             var (invoice, _, _) = await OrderInvoiceBuilder.BuildAsync(_unitOfWork, query.CourseIds, query.DiscountCode);
             return invoice;
         }

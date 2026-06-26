@@ -15,12 +15,12 @@ namespace Tabsareh.Api.Controllers.Order
         public async Task<ActionResult<CommandResult>> CreateOrder([FromBody] CreateOrderCommand command)
             => Ok(await Bus.Dispatch(command));
 
-        [Authorize(Policy = "manage_orders")]
+        [Authorize(Policy = "manage_card_to_card")]
         [HttpPost("ApproveCardToCardOrder")]
         public async Task<ActionResult<CommandResult>> ApproveCardToCardOrder([FromBody] ApproveCardToCardOrderCommand command)
             => Ok(await Bus.Dispatch(command));
 
-        [Authorize(Policy = "manage_orders")]
+        [Authorize(Policy = "manage_card_to_card")]
         [HttpPost("RejectCardToCardOrder")]
         public async Task<ActionResult<CommandResult>> RejectCardToCardOrder([FromBody] RejectCardToCardOrderCommand command)
             => Ok(await Bus.Dispatch(command));

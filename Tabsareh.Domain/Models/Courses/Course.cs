@@ -98,6 +98,15 @@ namespace Tabsareh.Domain.Models.Courses
         public DateTime? DiscountEndDate { get; private set; }
         public bool IsActive { get; private set; } = true;
         public bool IsDeleted { get; set; }
+        public double? AverageRating { get; private set; }
+        public int CommentCount { get; private set; }
+
+        public void UpdateRatingStats(double? averageRating, int commentCount)
+        {
+            AverageRating = averageRating;
+            CommentCount = commentCount;
+            UpdatedAt = DateTime.Now;
+        }
         public List<CourseSampleVideo> SampleVideos { get; private set; } = new();
         public List<CoursePdfFile> PdfFiles { get; private set; } = new();
         public List<CourseChapter> Chapters { get; private set; } = new();

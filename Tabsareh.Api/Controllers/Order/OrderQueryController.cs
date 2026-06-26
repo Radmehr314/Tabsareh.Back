@@ -17,7 +17,7 @@ namespace Tabsareh.Api.Controllers.Order
         public async Task<ActionResult<GetOrdersPagedQueryResult>> GetOrders([FromQuery] GetOrdersPagedQuery query)
             => Ok(await Bus.Dispatch<GetOrdersPagedQuery, GetOrdersPagedQueryResult>(query));
 
-        [Authorize(Policy = "manage_orders")]
+        [Authorize(Policy = "manage_card_to_card")]
         [HttpGet("PendingCardToCardOrders")]
         public async Task<ActionResult<GetOrdersPagedQueryResult>> GetPendingCardToCardOrders([FromQuery] GetPendingCardToCardOrdersQuery query)
             => Ok(await Bus.Dispatch<GetPendingCardToCardOrdersQuery, GetOrdersPagedQueryResult>(query));

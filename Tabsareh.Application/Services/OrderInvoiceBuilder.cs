@@ -20,14 +20,14 @@ namespace Tabsareh.Application.Services
                 .ToList();
 
             if (distinctCourseIds.Count == 0)
-                throw new UserAccessException("At least one course is required.");
+                throw new UserAccessException("حداقل یک دوره باید انتخاب شود.");
 
             var courses = new List<Course>();
             foreach (var courseId in distinctCourseIds)
             {
                 var course = await unitOfWork.CourseRepository.GetByIdAsync(courseId);
                 if (course is null || course.IsDeleted || !course.IsActive)
-                    throw new NotFoundException("Course not found.");
+                    throw new NotFoundException("دوره یافت نشد.");
                 courses.Add(course);
             }
 
@@ -38,7 +38,7 @@ namespace Tabsareh.Application.Services
             {
                 discount = await unitOfWork.DiscountCodeRepository.GetByCodeAsync(normalizedCode);
                 if (discount is null || !discount.CanUse(DateTime.Now))
-                    throw new UserAccessException("Discount code is not valid.");
+                    throw new UserAccessException("کد تخفیف معتبر نیست.");
                 discountPercent = discount.DiscountPercent;
             }
 
