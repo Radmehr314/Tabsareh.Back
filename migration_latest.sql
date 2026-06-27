@@ -1020,3 +1020,123 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260626194537_AddLicensePriceAndSiteSettings'
+)
+BEGIN
+    DECLARE @var1 nvarchar(max);
+    SELECT @var1 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[Courses]') AND [c].[name] = N'SettlementBasePrice');
+    IF @var1 IS NOT NULL EXEC(N'ALTER TABLE [Courses] DROP CONSTRAINT ' + @var1 + ';');
+    ALTER TABLE [Courses] DROP COLUMN [SettlementBasePrice];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260626194537_AddLicensePriceAndSiteSettings'
+)
+BEGIN
+    ALTER TABLE [OrderItems] ADD [LicensePriceSnapshot] decimal(18,2) NOT NULL DEFAULT 0.0;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260626194537_AddLicensePriceAndSiteSettings'
+)
+BEGIN
+    CREATE TABLE [SiteSettings] (
+        [Key] nvarchar(128) NOT NULL,
+        [Value] nvarchar(1024) NOT NULL,
+        CONSTRAINT [PK_SiteSettings] PRIMARY KEY ([Key])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260626194537_AddLicensePriceAndSiteSettings'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260626194537_AddLicensePriceAndSiteSettings', N'10.0.0');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260626212619_AddSiteSettingsAndLicensePrice'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260626212619_AddSiteSettingsAndLicensePrice', N'10.0.0');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260626220449_AddCartAndSiteSettings'
+)
+BEGIN
+    CREATE TABLE [Carts] (
+        [Id] nvarchar(64) NOT NULL,
+        [UserId] nvarchar(64) NOT NULL,
+        [CreatedAt] datetime2 NOT NULL,
+        [UpdatedAt] datetime2 NULL,
+        CONSTRAINT [PK_Carts] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_Carts_Users_UserId] FOREIGN KEY ([UserId]) REFERENCES [Users] ([Id]) ON DELETE CASCADE
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260626220449_AddCartAndSiteSettings'
+)
+BEGIN
+    CREATE TABLE [CartItems] (
+        [Id] nvarchar(64) NOT NULL,
+        [CartId] nvarchar(64) NOT NULL,
+        [CourseId] nvarchar(64) NOT NULL,
+        [CreatedAt] datetime2 NOT NULL,
+        [UpdatedAt] datetime2 NULL,
+        CONSTRAINT [PK_CartItems] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_CartItems_Carts_CartId] FOREIGN KEY ([CartId]) REFERENCES [Carts] ([Id]) ON DELETE CASCADE
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260626220449_AddCartAndSiteSettings'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_CartItems_CartId_CourseId] ON [CartItems] ([CartId], [CourseId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260626220449_AddCartAndSiteSettings'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_Carts_UserId] ON [Carts] ([UserId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20260626220449_AddCartAndSiteSettings'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20260626220449_AddCartAndSiteSettings', N'10.0.0');
+END;
+
+COMMIT;
+GO
+

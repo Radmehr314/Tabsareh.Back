@@ -1,6 +1,8 @@
 using Tabsareh.Application.Contracts.Contracts;
 using Tabsareh.Application.Contracts.Queries.ContentOwner;
 using Tabsareh.Application.Contracts.QueryResult.ContentOwner;
+using Tabsareh.Application.Contracts.QueryResult.Dashboard;
+using Tabsareh.Application.Contracts.Queries.Dashboard;
 using Tabsareh.Application.Mapper;
 using Tabsareh.Domain;
 using Tabsareh.Domain.Models.ContentOwners;
@@ -15,7 +17,8 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
         IQueryHandler<GetContentOwnerByIdQuery, ContentOwnerItemResult>,
         IQueryHandler<GetContentOwnerInfoByTokenQuery, GetContentOwnerInfoByTokenQueryResult>,
         IQueryHandler<GetContentOwnerPaymentsQuery, List<ContentOwnerPaymentItemResult>>,
-        IQueryHandler<GetMyContentOwnerPaymentsQuery, List<ContentOwnerPaymentItemResult>>
+        IQueryHandler<GetMyContentOwnerPaymentsQuery, List<ContentOwnerPaymentItemResult>>,
+        IQueryHandler<GetContentOwnerDashboardStatsQuery, ContentOwnerDashboardStatsResult>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserInfoService _userInfoService;
@@ -82,6 +85,22 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             if (owner is null || owner.IsDeleted) throw new NotFoundException("صاحب اثر یافت نشد.");
             var payments = await _unitOfWork.ContentOwnerPaymentRepository.GetByContentOwnerIdAsync(owner.Id);
             return payments.Select(x => x.ToPaymentItem(owner)).ToList();
+        }
+
+        public async Task<ContentOwnerDashboardStatsResult> Handle(GetContentOwnerDashboardStatsQuery query)
+        {
+            var ownerId = _userInfoService.GetUserIdByToken();
+            var owner = await _unitOfWork.ContentOwnerRepository.GetByIdAsync(ownerId);
+            if (owner is null || owner.IsDeleted) throw new NotFoundException("صاحب اثر یافت نشد.");
+
+            var earned = await _unitOfWork.OrderRepository.GetContentOwnerEarnedAmountAsync(ownerId);
+            var paid = await _unitOfWork.ContentOwnerPaymentRepository.GetPaidAmountByContentOwnerIdAsync(ownerId);
+            return new ContentOwnerDashboardStatsResult
+            {
+                TotalEarnedAmount = earned,
+                PaidAmount = paid,
+                PendingAmount = Math.Max(earned - paid, 0)
+            };
         }
 
         private async Task<List<ContentOwnerItemResult>> MapOwners(IEnumerable<ContentOwner> owners)

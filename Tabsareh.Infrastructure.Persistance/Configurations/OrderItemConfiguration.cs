@@ -20,6 +20,7 @@ namespace Tabsareh.Infrastructure.Persistance.Configurations
             b.Property(x => x.CourseDiscountAmountSnapshot).HasColumnType("decimal(18,2)");
             b.Property(x => x.DiscountCodePercentSnapshot).HasColumnType("decimal(5,2)");
             b.Property(x => x.DiscountCodeAmountSnapshot).HasColumnType("decimal(18,2)");
+            b.Property(x => x.LicensePriceSnapshot).HasColumnType("decimal(18,2)");
             b.Property(x => x.FinalAmount).HasColumnType("decimal(18,2)");
             b.Property(x => x.SettlementBasePriceSnapshot).HasColumnType("decimal(18,2)");
             b.Property(x => x.ContentOwnerSharePercentSnapshot).HasColumnType("decimal(5,2)");

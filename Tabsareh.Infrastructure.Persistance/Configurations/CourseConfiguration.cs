@@ -20,7 +20,6 @@ namespace Tabsareh.Infrastructure.Persistance.Configurations
             b.Property(x => x.TeacherId).HasMaxLength(64).IsRequired();
             b.Property(x => x.ContentOwnerId).HasMaxLength(64).IsRequired();
             b.Property(x => x.Price).HasColumnType("decimal(18,2)");
-            b.Property(x => x.SettlementBasePrice).HasColumnType("decimal(18,2)");
             b.Property(x => x.ContentOwnerSharePercent).HasColumnType("decimal(5,2)");
             b.Property(x => x.DiscountPercent).HasColumnType("decimal(5,2)");
             b.HasIndex(x => x.CategoryId);

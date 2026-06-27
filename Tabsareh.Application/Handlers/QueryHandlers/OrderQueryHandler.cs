@@ -14,7 +14,8 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
         IQueryHandler<GetOrdersPagedQuery, GetOrdersPagedQueryResult>,
         IQueryHandler<GetPendingCardToCardOrdersQuery, GetOrdersPagedQueryResult>,
         IQueryHandler<PreviewOrderInvoiceQuery, OrderInvoiceResult>,
-        IQueryHandler<GetMyOrdersQuery, List<OrderItemResult>>
+        IQueryHandler<GetMyOrdersQuery, List<OrderItemResult>>,
+        IQueryHandler<GetMyOrdersAsContentOwnerQuery, GetOrdersPagedQueryResult>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserInfoService _userInfoService;
@@ -60,11 +61,30 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             return orders.Select(x => x.ToItem()).ToList();
         }
 
+        public async Task<GetOrdersPagedQueryResult> Handle(GetMyOrdersAsContentOwnerQuery query)
+        {
+            var ownerId = _userInfoService.GetUserIdByToken();
+            var paged = await _unitOfWork.OrderRepository.GetPagedAsync(query.Options, new OrderFilter
+            {
+                Search = query.Search,
+                Status = query.Status,
+                ContentOwnerId = ownerId
+            });
+
+            return new GetOrdersPagedQueryResult
+            {
+                Items = paged.Items.Select(x => x.ToItem(maskPhone: true)).ToList(),
+                TotalCount = (int)paged.TotalCount,
+                Skip = paged.Skip,
+                Limit = paged.Limit
+            };
+        }
+
         public async Task<OrderInvoiceResult> Handle(PreviewOrderInvoiceQuery query)
         {
             var role = _userInfoService.GetRoleByToken();
             if (role != "user") throw new UserAccessException("فقط کاربران می‌توانند پیش‌فاکتور مشاهده کنند.");
-            var (invoice, _, _) = await OrderInvoiceBuilder.BuildAsync(_unitOfWork, query.CourseIds, query.DiscountCode);
+            var (invoice, _, _, _) = await OrderInvoiceBuilder.BuildAsync(_unitOfWork, query.CourseIds, query.DiscountCode);
             return invoice;
         }
 

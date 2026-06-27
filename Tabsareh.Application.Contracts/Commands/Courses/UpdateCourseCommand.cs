@@ -13,7 +13,6 @@ namespace Tabsareh.Application.Contracts.Commands.Courses
         public string ContentOwnerId { get; set; }
         public string? Description { get; set; }
         public decimal Price { get; set; }
-        public decimal SettlementBasePrice { get; set; }
         public decimal ContentOwnerSharePercent { get; set; }
         public decimal? DiscountPercent { get; set; }
         public DateTime? DiscountStartDate { get; set; }

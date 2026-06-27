@@ -191,6 +191,61 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     b.ToTable("Blogs", (string)null);
                 });
 
+            modelBuilder.Entity("Tabsareh.Domain.Models.Carts.Cart", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("Carts", (string)null);
+                });
+
+            modelBuilder.Entity("Tabsareh.Domain.Models.Carts.CartItem", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("CartId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("CourseId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CartId", "CourseId")
+                        .IsUnique();
+
+                    b.ToTable("CartItems", (string)null);
+                });
+
             modelBuilder.Entity("Tabsareh.Domain.Models.Categories.Category", b =>
                 {
                     b.Property<string>("Id")
@@ -416,9 +471,6 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("SettlementBasePrice")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("TeacherId")
@@ -871,6 +923,9 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<decimal>("LicensePriceSnapshot")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("OrderId")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -917,6 +972,22 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Roles", (string)null);
+                });
+
+            modelBuilder.Entity("Tabsareh.Domain.Models.SiteSettings.SiteSetting", b =>
+                {
+                    b.Property<string>("Key")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
+
+                    b.HasKey("Key");
+
+                    b.ToTable("SiteSettings", (string)null);
                 });
 
             modelBuilder.Entity("Tabsareh.Domain.Models.Teachers.Teacher", b =>
@@ -1011,6 +1082,24 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                         .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("Tabsareh.Domain.Models.Carts.Cart", b =>
+                {
+                    b.HasOne("Tabsareh.Domain.Models.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Tabsareh.Domain.Models.Carts.CartItem", b =>
+                {
+                    b.HasOne("Tabsareh.Domain.Models.Carts.Cart", null)
+                        .WithMany("Items")
+                        .HasForeignKey("CartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Tabsareh.Domain.Models.Categories.Category", b =>
@@ -1122,6 +1211,11 @@ namespace Tabsareh.Infrastructure.Persistance.Migrations
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Tabsareh.Domain.Models.Carts.Cart", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("Tabsareh.Domain.Models.Courses.Course", b =>

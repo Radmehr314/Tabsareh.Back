@@ -22,13 +22,15 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
         private readonly IConfiguration _configuration;
         private readonly ITokenService _tokenService;
         private readonly IUserInfoService _userInfoService;
+        private readonly ISmsService _smsService;
 
-        public AuthQueryHandler(IUnitOfWork unitOfWork, IConfiguration configuration, ITokenService tokenService, IUserInfoService userInfoService)
+        public AuthQueryHandler(IUnitOfWork unitOfWork, IConfiguration configuration, ITokenService tokenService, IUserInfoService userInfoService, ISmsService smsService)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
             _tokenService = tokenService;
             _userInfoService = userInfoService;
+            _smsService = smsService;
         }
 
         public async Task<LoginDto> Handle(LoginAdminQuery query)
@@ -118,12 +120,13 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             var otp = new SmsOtp(phone, code, DateTime.UtcNow.AddMinutes(2));
             var id = await _unitOfWork.SmsOtpRepository.AddAsync(otp);
 
+            await _smsService.SendOtpAsync(phone, code);
+
             return new RequestUserOtpResultDto
             {
                 Id = id,
                 Phone = phone,
-                ExpiresInSeconds = 120,
-                Code = code
+                ExpiresInSeconds = 120
             };
         }
 

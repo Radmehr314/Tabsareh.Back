@@ -6,14 +6,14 @@ namespace Tabsareh.Application.Mapper
 {
     public static class OrderMapper
     {
-        public static OrderItemResult ToItem(this OrderListItem item)
+        public static OrderItemResult ToItem(this OrderListItem item, bool maskPhone = false)
         {
             var order = item.Order;
             return new OrderItemResult
             {
                 Id = order.Id,
                 UserId = order.UserId,
-                UserPhone = item.UserPhone,
+                UserPhone = maskPhone ? MaskPhone(item.UserPhone) : item.UserPhone,
                 UserFullName = item.UserFullName,
                 CourseId = order.CourseId,
                 CourseTitle = order.Items.Count == 1
@@ -51,12 +51,21 @@ namespace Tabsareh.Application.Mapper
                     CourseDiscountAmount = x.CourseDiscountAmountSnapshot,
                     DiscountCodePercent = x.DiscountCodePercentSnapshot,
                     DiscountCodeAmount = x.DiscountCodeAmountSnapshot,
+                    LicensePriceSnapshot = x.LicensePriceSnapshot,
                     FinalAmount = x.FinalAmount,
                     ContentOwnerId = x.ContentOwnerIdSnapshot,
                     ContentOwnerName = x.ContentOwnerNameSnapshot,
-                    LicenseCode = x.LicenseCode
+                    LicenseCode = x.LicenseCode,
+                    SettlementBasePriceSnapshot = x.SettlementBasePriceSnapshot,
+                    ContentOwnerSharePercentSnapshot = x.ContentOwnerSharePercentSnapshot
                 }).ToList()
             };
+        }
+
+        private static string MaskPhone(string? phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone) || phone.Length < 8) return phone ?? string.Empty;
+            return phone[..4] + new string('X', phone.Length - 6) + phone[^2..];
         }
 
         private static string? SingleContentOwnerId(Order order)

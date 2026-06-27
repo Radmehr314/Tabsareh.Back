@@ -12,6 +12,11 @@ namespace Tabsareh.Api.Controllers.Course
     {
         public CourseQueryController(IQueryBus bus) : base(bus) { }
 
+        [AllowAnonymous]
+        [HttpGet("PublicCourses")]
+        public async Task<ActionResult<PublicCoursesResult>> GetPublicCourses()
+            => Ok(await Bus.Dispatch<GetPublicCoursesQuery, PublicCoursesResult>(new GetPublicCoursesQuery()));
+
         [HttpGet("Courses")]
         public async Task<ActionResult<GetCoursesPagedQueryResult>> GetCoursesPaged([FromQuery] GetCoursesPagedQuery query)
         {

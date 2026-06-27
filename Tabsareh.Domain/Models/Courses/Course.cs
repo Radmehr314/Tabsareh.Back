@@ -13,7 +13,6 @@ namespace Tabsareh.Domain.Models.Courses
             string contentOwnerId,
             string? description,
             decimal price,
-            decimal settlementBasePrice,
             decimal contentOwnerSharePercent,
             bool isActive,
             decimal? discountPercent = null,
@@ -28,7 +27,6 @@ namespace Tabsareh.Domain.Models.Courses
             ContentOwnerId = contentOwnerId;
             Description = description;
             Price = price;
-            SettlementBasePrice = settlementBasePrice;
             ContentOwnerSharePercent = contentOwnerSharePercent;
             IsActive = isActive;
             SetDiscount(discountPercent, discountStartDate, discountEndDate);
@@ -52,7 +50,6 @@ namespace Tabsareh.Domain.Models.Courses
             string contentOwnerId,
             string? description,
             decimal price,
-            decimal settlementBasePrice,
             decimal contentOwnerSharePercent,
             bool isActive,
             decimal? discountPercent = null,
@@ -67,7 +64,6 @@ namespace Tabsareh.Domain.Models.Courses
             ContentOwnerId = contentOwnerId;
             Description = description;
             Price = price;
-            SettlementBasePrice = settlementBasePrice;
             ContentOwnerSharePercent = contentOwnerSharePercent;
             IsActive = isActive;
             SetDiscount(discountPercent, discountStartDate, discountEndDate);
@@ -91,7 +87,6 @@ namespace Tabsareh.Domain.Models.Courses
         public string ContentOwnerId { get; private set; }
         public string? Description { get; private set; }
         public decimal Price { get; private set; }
-        public decimal SettlementBasePrice { get; private set; }
         public decimal ContentOwnerSharePercent { get; private set; }
         public decimal? DiscountPercent { get; private set; }
         public DateTime? DiscountStartDate { get; private set; }

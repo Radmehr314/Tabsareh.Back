@@ -43,7 +43,7 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
             if (command.PaymentMethod == OrderPaymentMethods.CardToCard && string.IsNullOrWhiteSpace(command.CardToCardTrackingNumber))
                 throw new UserAccessException("شماره پیگیری کارت به کارت الزامی است.");
 
-            var (invoice, courses, discountCode) = await OrderInvoiceBuilder.BuildAsync(_unitOfWork, command.CourseIds, command.DiscountCode);
+            var (invoice, courses, discountCode, licensePrice) = await OrderInvoiceBuilder.BuildAsync(_unitOfWork, command.CourseIds, command.DiscountCode);
 
             var order = new Order(
                 tokenUserId,
@@ -71,8 +71,9 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
                     invoiceItem.CourseDiscountAmount,
                     invoiceItem.DiscountCodePercent,
                     invoiceItem.DiscountCodeAmount,
+                    licensePrice,
                     invoiceItem.FinalAmount,
-                    course.SettlementBasePrice,
+                    course.Price,
                     course.ContentOwnerSharePercent,
                     course.ContentOwnerId,
                     contentOwner?.Name ?? string.Empty));

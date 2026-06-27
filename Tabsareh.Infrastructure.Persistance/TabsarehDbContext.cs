@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Tabsareh.Domain.Models.Admins;
+using Tabsareh.Domain.Models.Carts;
 using Tabsareh.Domain.Models.Auth;
 using Tabsareh.Domain.Models.Blogs;
 using Tabsareh.Domain.Models.Categories;
@@ -10,6 +11,7 @@ using Tabsareh.Domain.Models.DynamicPages;
 using Tabsareh.Domain.Models.Discounts;
 using Tabsareh.Domain.Models.Orders;
 using Tabsareh.Domain.Models.Roles;
+using Tabsareh.Domain.Models.SiteSettings;
 using Tabsareh.Domain.Models.Teachers;
 using Tabsareh.Domain.Models.Users;
 
@@ -38,6 +40,9 @@ namespace Tabsareh.Infrastructure.Persistance
         public DbSet<CourseChapter> CourseChapters => Set<CourseChapter>();
         public DbSet<CourseChapterVideo> CourseChapterVideos => Set<CourseChapterVideo>();
         public DbSet<CourseComment> CourseComments => Set<CourseComment>();
+        public DbSet<SiteSetting> SiteSettings => Set<SiteSetting>();
+        public DbSet<Cart> Carts => Set<Cart>();
+        public DbSet<CartItem> CartItems => Set<CartItem>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -29,7 +29,6 @@ namespace Tabsareh.Application.Mapper
                 ContentOwnerName = contentOwner?.Name,
                 Description = course.Description,
                 Price = course.Price,
-                SettlementBasePrice = course.SettlementBasePrice,
                 ContentOwnerSharePercent = course.ContentOwnerSharePercent,
                 DiscountPercent = course.DiscountPercent,
                 DiscountStartDate = course.DiscountStartDate,

@@ -23,7 +23,7 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
 
         public async Task<CommandResult> Handle(AddCourseCommand command)
         {
-            ValidateCourse(command.Title, command.DurationMinutes, command.Price, command.SettlementBasePrice, command.ContentOwnerSharePercent, command.DiscountPercent, command.DiscountStartDate, command.DiscountEndDate);
+            ValidateCourse(command.Title, command.DurationMinutes, command.Price, command.ContentOwnerSharePercent, command.DiscountPercent, command.DiscountStartDate, command.DiscountEndDate);
             await ValidateRelations(command.TeacherId, command.ContentOwnerId, command.CategoryId);
 
             var course = new Course(
@@ -35,7 +35,6 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
                 command.ContentOwnerId,
                 command.Description,
                 command.Price,
-                command.SettlementBasePrice,
                 command.ContentOwnerSharePercent,
                 command.IsActive,
                 command.DiscountPercent,
@@ -51,7 +50,7 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
 
         public async Task<CommandResult> Handle(UpdateCourseCommand command)
         {
-            ValidateCourse(command.Title, command.DurationMinutes, command.Price, command.SettlementBasePrice, command.ContentOwnerSharePercent, command.DiscountPercent, command.DiscountStartDate, command.DiscountEndDate);
+            ValidateCourse(command.Title, command.DurationMinutes, command.Price, command.ContentOwnerSharePercent, command.DiscountPercent, command.DiscountStartDate, command.DiscountEndDate);
 
             var course = await _unitOfWork.CourseRepository.GetByIdAsync(command.Id);
             if (course is null || course.IsDeleted) throw new NotFoundException("دوره یافت نشد.");
@@ -67,7 +66,6 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
                 command.ContentOwnerId,
                 command.Description,
                 command.Price,
-                command.SettlementBasePrice,
                 command.ContentOwnerSharePercent,
                 command.IsActive,
                 command.DiscountPercent,
@@ -158,12 +156,11 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
                 .ToList();
         }
 
-        private static void ValidateCourse(string title, int durationMinutes, decimal price, decimal settlementBasePrice, decimal sharePercent, decimal? discountPercent, DateTime? discountStartDate, DateTime? discountEndDate)
+        private static void ValidateCourse(string title, int durationMinutes, decimal price, decimal sharePercent, decimal? discountPercent, DateTime? discountStartDate, DateTime? discountEndDate)
         {
             if (string.IsNullOrWhiteSpace(title)) throw new UserAccessException("عنوان دوره الزامی است.");
             if (durationMinutes < 0) throw new UserAccessException("مدت زمان دوره معتبر نیست.");
             if (price < 0) throw new UserAccessException("مبلغ دوره معتبر نیست.");
-            if (settlementBasePrice < 0) throw new UserAccessException("مبلغ مبنای محاسبه سهم صاحب اثر معتبر نیست.");
             if (sharePercent < 0 || sharePercent > 100) throw new UserAccessException("سهم صاحب اثر باید بین ۰ تا ۱۰۰ درصد باشد.");
             if (discountPercent.HasValue && (discountPercent < 0 || discountPercent > 100)) throw new UserAccessException("درصد تخفیف باید بین ۰ تا ۱۰۰ باشد.");
             if (discountPercent.HasValue && discountPercent > 0 && (!discountStartDate.HasValue || !discountEndDate.HasValue)) throw new UserAccessException("بازه زمانی تخفیف الزامی است.");

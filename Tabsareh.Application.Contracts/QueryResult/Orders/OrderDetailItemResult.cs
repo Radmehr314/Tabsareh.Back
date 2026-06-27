@@ -9,9 +9,12 @@ namespace Tabsareh.Application.Contracts.QueryResult.Orders
         public decimal CourseDiscountAmount { get; set; }
         public decimal DiscountCodePercent { get; set; }
         public decimal DiscountCodeAmount { get; set; }
+        public decimal LicensePriceSnapshot { get; set; }
         public decimal FinalAmount { get; set; }
         public string ContentOwnerId { get; set; }
         public string ContentOwnerName { get; set; }
         public string? LicenseCode { get; set; }
+        public decimal SettlementBasePriceSnapshot { get; set; }
+        public decimal ContentOwnerSharePercentSnapshot { get; set; }
     }
 }

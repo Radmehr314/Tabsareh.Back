@@ -1,5 +1,6 @@
 using Tabsareh.Domain;
 using Tabsareh.Domain.Models.Admins;
+using Tabsareh.Domain.Models.Carts;
 using Tabsareh.Domain.Models.Auth;
 using Tabsareh.Domain.Models.Blogs;
 using Tabsareh.Domain.Models.Categories;
@@ -10,6 +11,7 @@ using Tabsareh.Domain.Models.DynamicPages;
 using Tabsareh.Domain.Models.Discounts;
 using Tabsareh.Domain.Models.Orders;
 using Tabsareh.Domain.Models.Roles;
+using Tabsareh.Domain.Models.SiteSettings;
 using Tabsareh.Domain.Models.Teachers;
 using Tabsareh.Domain.Models.Users;
 
@@ -32,6 +34,8 @@ namespace Tabsareh.Infrastructure.Persistance
         public ICourseRepository CourseRepository { get; set; }
         public ICourseChapterRepository CourseChapterRepository { get; set; }
         public ICourseCommentRepository CourseCommentRepository { get; set; }
+        public ISiteSettingRepository SiteSettingRepository { get; set; }
+        public ICartRepository CartRepository { get; set; }
 
         public UnitOfWork(
             IAdminRepository adminRepository,
@@ -48,7 +52,9 @@ namespace Tabsareh.Infrastructure.Persistance
             IOrderRepository orderRepository,
             ICourseRepository courseRepository,
             ICourseChapterRepository courseChapterRepository,
-            ICourseCommentRepository courseCommentRepository)
+            ICourseCommentRepository courseCommentRepository,
+            ISiteSettingRepository siteSettingRepository,
+            ICartRepository cartRepository)
         {
             AdminRepository = adminRepository;
             SmsOtpRepository = smsOtpRepository;
@@ -65,6 +71,8 @@ namespace Tabsareh.Infrastructure.Persistance
             CourseRepository = courseRepository;
             CourseChapterRepository = courseChapterRepository;
             CourseCommentRepository = courseCommentRepository;
+            SiteSettingRepository = siteSettingRepository;
+            CartRepository = cartRepository;
         }
     }
 }

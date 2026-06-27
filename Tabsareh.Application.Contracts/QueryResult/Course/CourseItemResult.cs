@@ -14,7 +14,6 @@ namespace Tabsareh.Application.Contracts.QueryResult.Course
         public string? ContentOwnerName { get; set; }
         public string? Description { get; set; }
         public decimal Price { get; set; }
-        public decimal SettlementBasePrice { get; set; }
         public decimal ContentOwnerSharePercent { get; set; }
         public decimal? DiscountPercent { get; set; }
         public DateTime? DiscountStartDate { get; set; }

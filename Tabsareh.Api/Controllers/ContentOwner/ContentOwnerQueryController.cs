@@ -3,7 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using Tabsareh.Framework.Api;
 using Tabsareh.Framework.Application;
 using Tabsareh.Application.Contracts.Queries.ContentOwner;
+using Tabsareh.Application.Contracts.Queries.Orders;
+using Tabsareh.Application.Contracts.Queries.Dashboard;
 using Tabsareh.Application.Contracts.QueryResult.ContentOwner;
+using Tabsareh.Application.Contracts.QueryResult.Course;
+using Tabsareh.Application.Contracts.QueryResult.Orders;
+using Tabsareh.Application.Contracts.QueryResult.Dashboard;
 
 namespace Tabsareh.Api.Controllers.ContentOwner
 {
@@ -51,6 +56,34 @@ namespace Tabsareh.Api.Controllers.ContentOwner
         public async Task<ActionResult<List<ContentOwnerPaymentItemResult>>> GetMyContentOwnerPayments()
         {
             return Ok(await Bus.Dispatch<GetMyContentOwnerPaymentsQuery, List<ContentOwnerPaymentItemResult>>(new GetMyContentOwnerPaymentsQuery()));
+        }
+
+        [HttpGet("MyCourses")]
+        [Authorize(Roles = "content_owner")]
+        public async Task<ActionResult<List<CourseItemResult>>> GetMyCourses()
+        {
+            return Ok(await Bus.Dispatch<GetMyCoursesQuery, List<CourseItemResult>>(new GetMyCoursesQuery()));
+        }
+
+        [HttpGet("MyCourseChapters")]
+        [Authorize(Roles = "content_owner")]
+        public async Task<ActionResult<List<CourseChapterItemResult>>> GetMyCourseChapters([FromQuery] GetMyCourseChaptersQuery query)
+        {
+            return Ok(await Bus.Dispatch<GetMyCourseChaptersQuery, List<CourseChapterItemResult>>(query));
+        }
+
+        [HttpGet("MyOrdersAsContentOwner")]
+        [Authorize(Roles = "content_owner")]
+        public async Task<ActionResult<GetOrdersPagedQueryResult>> GetMyOrdersAsContentOwner([FromQuery] GetMyOrdersAsContentOwnerQuery query)
+        {
+            return Ok(await Bus.Dispatch<GetMyOrdersAsContentOwnerQuery, GetOrdersPagedQueryResult>(query));
+        }
+
+        [HttpGet("MyDashboardStats")]
+        [Authorize(Roles = "content_owner")]
+        public async Task<ActionResult<ContentOwnerDashboardStatsResult>> GetMyDashboardStats()
+        {
+            return Ok(await Bus.Dispatch<GetContentOwnerDashboardStatsQuery, ContentOwnerDashboardStatsResult>(new GetContentOwnerDashboardStatsQuery()));
         }
     }
 }

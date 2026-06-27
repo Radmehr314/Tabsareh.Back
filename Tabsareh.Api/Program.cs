@@ -118,6 +118,7 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ================= Misc =================
+builder.Services.AddHttpClient();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHealthChecks();
 builder.Services.AddCors(options =>

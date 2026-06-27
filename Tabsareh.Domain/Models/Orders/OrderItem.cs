@@ -13,6 +13,7 @@ namespace Tabsareh.Domain.Models.Orders
             decimal courseDiscountAmountSnapshot,
             decimal discountCodePercentSnapshot,
             decimal discountCodeAmountSnapshot,
+            decimal licensePriceSnapshot,
             decimal finalAmount,
             decimal settlementBasePriceSnapshot,
             decimal contentOwnerSharePercentSnapshot,
@@ -27,6 +28,7 @@ namespace Tabsareh.Domain.Models.Orders
             CourseDiscountAmountSnapshot = courseDiscountAmountSnapshot;
             DiscountCodePercentSnapshot = discountCodePercentSnapshot;
             DiscountCodeAmountSnapshot = discountCodeAmountSnapshot;
+            LicensePriceSnapshot = licensePriceSnapshot;
             FinalAmount = finalAmount;
             SettlementBasePriceSnapshot = settlementBasePriceSnapshot;
             ContentOwnerSharePercentSnapshot = contentOwnerSharePercentSnapshot;
@@ -55,6 +57,7 @@ namespace Tabsareh.Domain.Models.Orders
         public decimal CourseDiscountAmountSnapshot { get; private set; }
         public decimal DiscountCodePercentSnapshot { get; private set; }
         public decimal DiscountCodeAmountSnapshot { get; private set; }
+        public decimal LicensePriceSnapshot { get; private set; }
         public decimal FinalAmount { get; private set; }
         public decimal SettlementBasePriceSnapshot { get; private set; }
         public decimal ContentOwnerSharePercentSnapshot { get; private set; }

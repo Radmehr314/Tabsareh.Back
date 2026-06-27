@@ -2,13 +2,14 @@ using Tabsareh.Application.Contracts.QueryResult.Orders;
 using Tabsareh.Domain;
 using Tabsareh.Domain.Models.Courses;
 using Tabsareh.Domain.Models.Discounts;
+using Tabsareh.Domain.Models.SiteSettings;
 using Tabsareh.Framework.Application.Exceptions;
 
 namespace Tabsareh.Application.Services
 {
     internal static class OrderInvoiceBuilder
     {
-        public static async Task<(OrderInvoiceResult Invoice, List<Course> Courses, DiscountCode? DiscountCode)> BuildAsync(
+        public static async Task<(OrderInvoiceResult Invoice, List<Course> Courses, DiscountCode? DiscountCode, decimal LicensePrice)> BuildAsync(
             IUnitOfWork unitOfWork,
             List<string> courseIds,
             string? discountCode)
@@ -31,6 +32,9 @@ namespace Tabsareh.Application.Services
                 courses.Add(course);
             }
 
+            var licensePriceRaw = await unitOfWork.SiteSettingRepository.GetAsync(SiteSettingKeys.LicensePrice);
+            var licensePrice = decimal.TryParse(licensePriceRaw, out var lp) ? lp : 0m;
+
             DiscountCode? discount = null;
             var discountPercent = 0m;
             var normalizedCode = discountCode?.Trim().ToUpperInvariant();
@@ -45,7 +49,8 @@ namespace Tabsareh.Application.Services
             var invoice = new OrderInvoiceResult
             {
                 DiscountCode = normalizedCode,
-                DiscountCodePercent = discountPercent
+                DiscountCodePercent = discountPercent,
+                LicensePrice = licensePrice
             };
 
             foreach (var course in courses)
@@ -54,7 +59,7 @@ namespace Tabsareh.Application.Services
                 var courseDiscountAmount = Round(course.Price * courseDiscountPercent / 100);
                 var afterCourseDiscount = Math.Max(0, course.Price - courseDiscountAmount);
                 var codeDiscountAmount = Round(afterCourseDiscount * discountPercent / 100);
-                var finalAmount = Math.Max(0, afterCourseDiscount - codeDiscountAmount);
+                var finalAmount = Math.Max(0, afterCourseDiscount - codeDiscountAmount + licensePrice);
 
                 invoice.Items.Add(new OrderInvoiceItemResult
                 {
@@ -65,6 +70,7 @@ namespace Tabsareh.Application.Services
                     CourseDiscountAmount = courseDiscountAmount,
                     DiscountCodePercent = discountPercent,
                     DiscountCodeAmount = codeDiscountAmount,
+                    LicensePrice = licensePrice,
                     FinalAmount = finalAmount
                 });
             }
@@ -73,7 +79,7 @@ namespace Tabsareh.Application.Services
             invoice.CourseDiscountAmount = invoice.Items.Sum(x => x.CourseDiscountAmount);
             invoice.DiscountCodeAmount = invoice.Items.Sum(x => x.DiscountCodeAmount);
             invoice.PayableAmount = invoice.Items.Sum(x => x.FinalAmount);
-            return (invoice, courses, discount);
+            return (invoice, courses, discount, licensePrice);
         }
 
         private static decimal GetActiveDiscountPercent(Course course)

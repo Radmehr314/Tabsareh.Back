@@ -19,11 +19,21 @@ namespace Tabsareh.Infrastructure.Persistance.Repositories
                 .FirstOrDefaultAsync(x => x.Id == id);
 
         public async Task<IEnumerable<Course>> GetAllAsync()
-            => await _db.Courses.AsNoTracking().Where(x => !x.IsDeleted).OrderByDescending(x => x.CreatedAt).ToListAsync();
+            => await _db.Courses
+                .Include(x => x.SampleVideos)
+                .Include(x => x.PdfFiles)
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted)
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync();
 
         public async Task<PagedResult<Course>> GetPagedAsync(QueryOptions options)
         {
-            var query = _db.Courses.AsNoTracking().Where(x => !x.IsDeleted);
+            var query = _db.Courses
+                .Include(x => x.SampleVideos)
+                .Include(x => x.PdfFiles)
+                .AsNoTracking()
+                .Where(x => !x.IsDeleted);
             return await QueryHelper.GetPagedResultAsync(query, options);
         }
 

@@ -1,4 +1,5 @@
 using Tabsareh.Domain.Models.Admins;
+using Tabsareh.Domain.Models.Carts;
 using Tabsareh.Domain.Models.Auth;
 using Tabsareh.Domain.Models.Blogs;
 using Tabsareh.Domain.Models.Categories;
@@ -9,6 +10,7 @@ using Tabsareh.Domain.Models.DynamicPages;
 using Tabsareh.Domain.Models.Discounts;
 using Tabsareh.Domain.Models.Orders;
 using Tabsareh.Domain.Models.Roles;
+using Tabsareh.Domain.Models.SiteSettings;
 using Tabsareh.Domain.Models.Teachers;
 using Tabsareh.Domain.Models.Users;
 
@@ -31,5 +33,7 @@ namespace Tabsareh.Domain
         ICourseRepository CourseRepository { get; set; }
         ICourseChapterRepository CourseChapterRepository { get; set; }
         ICourseCommentRepository CourseCommentRepository { get; set; }
+        ISiteSettingRepository SiteSettingRepository { get; set; }
+        ICartRepository CartRepository { get; set; }
     }
 }
