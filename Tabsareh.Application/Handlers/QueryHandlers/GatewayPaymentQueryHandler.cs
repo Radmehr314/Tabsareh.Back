@@ -92,7 +92,7 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
             var redirectUrl = _configuration["Sep:RedirectUrl"]
                 ?? throw new InvalidOperationException("Sep:RedirectUrl is not configured.");
 
-            var amountRials = (long)Math.Round(order.PayableAmount);
+            var amountRials = (long)Math.Round(order.PayableAmount * 10);
             var tokenResult = await _sepPaymentService.GetTokenAsync(terminalId, order.Id, amountRials, redirectUrl, query.CellNumber);
 
             if (!tokenResult.Success || string.IsNullOrWhiteSpace(tokenResult.Token))
