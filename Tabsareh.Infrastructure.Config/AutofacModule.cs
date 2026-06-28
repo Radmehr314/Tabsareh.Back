@@ -40,6 +40,7 @@ namespace Tabsareh.Infrastructure.Config
             builder.RegisterType<TokenService>().As<ITokenService>().InstancePerLifetimeScope();
             builder.RegisterType<UserInfoService>().As<IUserInfoService>().InstancePerLifetimeScope();
             builder.RegisterType<LicenseProvisioningService>().As<ILicenseProvisioningService>().InstancePerLifetimeScope();
+            builder.RegisterType<SepPaymentService>().As<ISepPaymentService>().InstancePerLifetimeScope();
             builder.RegisterType<SmsIrService>().As<ISmsService>().InstancePerLifetimeScope();
 
             builder.RegisterType<AutofacCommandBus>().As<ICommandBus>().InstancePerLifetimeScope();

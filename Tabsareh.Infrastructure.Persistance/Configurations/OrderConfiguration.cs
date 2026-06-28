@@ -32,6 +32,11 @@ namespace Tabsareh.Infrastructure.Persistance.Configurations
             b.Property(x => x.CardToCardDescription).HasMaxLength(1024);
             b.Property(x => x.RejectionReason).HasMaxLength(1024);
             b.Property(x => x.LicenseCode).HasMaxLength(128);
+            b.Property(x => x.GatewayToken).HasMaxLength(256);
+            b.Property(x => x.GatewayRefNum).HasMaxLength(128);
+            b.Property(x => x.GatewayRRN).HasMaxLength(64);
+            b.Property(x => x.GatewayTraceNo).HasMaxLength(64);
+            b.Property(x => x.GatewaySecurePan).HasMaxLength(32);
             b.HasMany(x => x.Items).WithOne().HasForeignKey(x => x.OrderId).OnDelete(DeleteBehavior.Cascade);
             b.Navigation(x => x.Items).UsePropertyAccessMode(PropertyAccessMode.Field);
             b.HasIndex(x => x.UserId);

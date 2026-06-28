@@ -115,7 +115,7 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
                     invoiceItem.DiscountCodeAmount,
                     licensePrice,
                     invoiceItem.FinalAmount,
-                    course.Price,
+                    Math.Max(0, invoiceItem.FinalAmount - licensePrice),
                     course.ContentOwnerSharePercent,
                     course.ContentOwnerId,
                     contentOwner?.Name ?? string.Empty));

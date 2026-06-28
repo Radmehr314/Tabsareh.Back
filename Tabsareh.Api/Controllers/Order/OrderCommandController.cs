@@ -24,5 +24,14 @@ namespace Tabsareh.Api.Controllers.Order
         [HttpPost("RejectCardToCardOrder")]
         public async Task<ActionResult<CommandResult>> RejectCardToCardOrder([FromBody] RejectCardToCardOrderCommand command)
             => Ok(await Bus.Dispatch(command));
+
+        /// <summary>
+        /// فراخوانی توسط فرانت‌اند پس از بازگشت کاربر از صفحه پرداخت سامان
+        /// نیازی به احراز هویت ندارد چون سامان کاربر را redirect می‌کند
+        /// </summary>
+        [AllowAnonymous]
+        [HttpPost("VerifyGatewayPayment")]
+        public async Task<ActionResult<CommandResult>> VerifyGatewayPayment([FromBody] VerifyGatewayPaymentCommand command)
+            => Ok(await Bus.Dispatch(command));
     }
 }

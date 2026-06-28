@@ -42,6 +42,23 @@ namespace Tabsareh.Domain.Models.Orders
 
         public void AddItem(OrderItem item) => _items.Add(item);
 
+        public void SetGatewayToken(string token)
+        {
+            GatewayToken = token;
+            UpdatedAt = DateTime.Now;
+        }
+
+        public void CompleteGatewayPayment(string refNum, string? rrn, string? traceNo, string? securePan)
+        {
+            GatewayRefNum = refNum;
+            GatewayRRN = rrn;
+            GatewayTraceNo = traceNo;
+            GatewaySecurePan = securePan;
+            Status = OrderStatuses.Success;
+            PaidAt = DateTime.Now;
+            UpdatedAt = DateTime.Now;
+        }
+
         public void Approve()
         {
             Status = OrderStatuses.Success;
@@ -76,6 +93,11 @@ namespace Tabsareh.Domain.Models.Orders
         public string? CardToCardDescription { get; private set; }
         public string? RejectionReason { get; private set; }
         public string? LicenseCode { get; private set; }
+        public string? GatewayToken { get; private set; }
+        public string? GatewayRefNum { get; private set; }
+        public string? GatewayRRN { get; private set; }
+        public string? GatewayTraceNo { get; private set; }
+        public string? GatewaySecurePan { get; private set; }
         public IReadOnlyCollection<OrderItem> Items => _items;
     }
 }

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Tabsareh.Application.Contracts.Commands.Orders;
 using Tabsareh.Application.Contracts.Contracts;
 using Tabsareh.Application.Services;
@@ -11,20 +12,27 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
     public class OrderCommandHandler :
         ICommandHandler<CreateOrderCommand>,
         ICommandHandler<ApproveCardToCardOrderCommand>,
-        ICommandHandler<RejectCardToCardOrderCommand>
+        ICommandHandler<RejectCardToCardOrderCommand>,
+        ICommandHandler<VerifyGatewayPaymentCommand>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILicenseProvisioningService _licenseProvisioningService;
         private readonly IUserInfoService _userInfoService;
+        private readonly ISepPaymentService _sepPaymentService;
+        private readonly IConfiguration _configuration;
 
         public OrderCommandHandler(
             IUnitOfWork unitOfWork,
             ILicenseProvisioningService licenseProvisioningService,
-            IUserInfoService userInfoService)
+            IUserInfoService userInfoService,
+            ISepPaymentService sepPaymentService,
+            IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _licenseProvisioningService = licenseProvisioningService;
             _userInfoService = userInfoService;
+            _sepPaymentService = sepPaymentService;
+            _configuration = configuration;
         }
 
         public async Task<CommandResult> Handle(CreateOrderCommand command)
@@ -73,7 +81,7 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
                     invoiceItem.DiscountCodeAmount,
                     licensePrice,
                     invoiceItem.FinalAmount,
-                    course.Price,
+                    Math.Max(0, invoiceItem.FinalAmount - licensePrice),
                     course.ContentOwnerSharePercent,
                     course.ContentOwnerId,
                     contentOwner?.Name ?? string.Empty));
@@ -110,6 +118,48 @@ namespace Tabsareh.Application.Handlers.CommandHandlers
             if (order.Status != OrderStatuses.PendingApproval) throw new UserAccessException("این سفارش در انتظار تأیید نیست.");
 
             order.Reject(command.Reason);
+            await _unitOfWork.OrderRepository.UpdateAsync(order);
+            return new CommandResult { Id = order.Id };
+        }
+
+        public async Task<CommandResult> Handle(VerifyGatewayPaymentCommand command)
+        {
+            var order = await _unitOfWork.OrderRepository.GetByIdAsync(command.ResNum);
+            if (order is null) throw new NotFoundException("سفارش یافت نشد.");
+            if (order.PaymentMethod != OrderPaymentMethods.Gateway) throw new UserAccessException("این سفارش از نوع درگاه پرداخت نیست.");
+            if (order.Status != OrderStatuses.PendingPayment) throw new UserAccessException("وضعیت سفارش برای تأیید پرداخت معتبر نیست.");
+
+            if (!command.State.Equals("OK", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(command.RefNum))
+            {
+                order.Reject(command.State);
+                await _unitOfWork.OrderRepository.UpdateAsync(order);
+                return new CommandResult { Id = order.Id };
+            }
+
+            var terminalId = _configuration["Sep:TerminalId"]
+                ?? throw new InvalidOperationException("Sep:TerminalId is not configured.");
+
+            var verifyResult = await _sepPaymentService.VerifyAsync(long.Parse(terminalId), command.RefNum);
+
+            if (!verifyResult.Success)
+            {
+                order.Reject(verifyResult.ResultDescription ?? "خطا در تأیید پرداخت");
+                await _unitOfWork.OrderRepository.UpdateAsync(order);
+                return new CommandResult { Id = order.Id };
+            }
+
+            foreach (var item in order.Items)
+            {
+                var licenseCode = await _licenseProvisioningService.CreateLicenseAsync(order.UserId, item.CourseId, order.Id);
+                item.SetLicense(licenseCode);
+            }
+
+            order.CompleteGatewayPayment(
+                command.RefNum,
+                verifyResult.RRN ?? command.RRN,
+                verifyResult.TraceNo ?? command.TraceNo,
+                verifyResult.MaskedPan ?? command.SecurePan);
+
             await _unitOfWork.OrderRepository.UpdateAsync(order);
             return new CommandResult { Id = order.Id };
         }

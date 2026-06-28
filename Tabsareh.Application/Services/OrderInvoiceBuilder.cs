@@ -50,7 +50,6 @@ namespace Tabsareh.Application.Services
             {
                 DiscountCode = normalizedCode,
                 DiscountCodePercent = discountPercent,
-                LicensePrice = licensePrice
             };
 
             foreach (var course in courses)
@@ -59,7 +58,12 @@ namespace Tabsareh.Application.Services
                 var courseDiscountAmount = Round(course.Price * courseDiscountPercent / 100);
                 var afterCourseDiscount = Math.Max(0, course.Price - courseDiscountAmount);
                 var codeDiscountAmount = Round(afterCourseDiscount * discountPercent / 100);
-                var finalAmount = Math.Max(0, afterCourseDiscount - codeDiscountAmount + licensePrice);
+
+                // مبلغ پرداختی کاربر = قیمت دوره منهای تخفیف‌ها (بدون لایسنس)
+                var finalAmount = Math.Max(0, afterCourseDiscount - codeDiscountAmount);
+
+                // مبنای محاسبه سهم صاحب اثر = مبلغ پرداختی منهای هزینه لایسنس
+                var settlementBase = Math.Max(0, finalAmount - licensePrice);
 
                 invoice.Items.Add(new OrderInvoiceItemResult
                 {
@@ -70,8 +74,7 @@ namespace Tabsareh.Application.Services
                     CourseDiscountAmount = courseDiscountAmount,
                     DiscountCodePercent = discountPercent,
                     DiscountCodeAmount = codeDiscountAmount,
-                    LicensePrice = licensePrice,
-                    FinalAmount = finalAmount
+                    FinalAmount = finalAmount,
                 });
             }
 

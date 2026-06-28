@@ -84,7 +84,14 @@ namespace Tabsareh.Application.Handlers.QueryHandlers
         {
             var role = _userInfoService.GetRoleByToken();
             if (role != "user") throw new UserAccessException("فقط کاربران می‌توانند پیش‌فاکتور مشاهده کنند.");
-            var (invoice, _, _, _) = await OrderInvoiceBuilder.BuildAsync(_unitOfWork, query.CourseIds, query.DiscountCode);
+
+            var userId = _userInfoService.GetUserIdByToken();
+            var cart = await _unitOfWork.CartRepository.GetByUserIdAsync(userId);
+            if (cart is null || cart.Items.Count == 0)
+                throw new UserAccessException("سبد خرید شما خالی است.");
+
+            var courseIds = cart.Items.Select(x => x.CourseId).ToList();
+            var (invoice, _, _, _) = await OrderInvoiceBuilder.BuildAsync(_unitOfWork, courseIds, query.DiscountCode);
             return invoice;
         }
 
